@@ -31,11 +31,11 @@ If you're interested in how the project is organized at a higher level, please c
 ## Our PoC team ❤️
 
 Developers
-| [<img src="https://github.com/RezaRahemtola.png?size=85" width=85><br><sub>[Reza Rahemtola]</sub>](https://github.com/RezaRahemtola) | [<img src="https://github.com/MrZalTy.png?size=85" width=85><br><sub>[Developer's name]</sub>](https://github.com/MrZalTy) | [<img src="https://github.com/MrZalTy.png?size=85" width=85><br><sub>[Developer's name]</sub>](https://github.com/MrZalTy)
+| [<img src="https://github.com/vahand.png?size=85" width=85><br><sub>[Vahan Ducher]</sub>](https://github.com/vahand) | [<img src="https://github.com/MrZalTy.png?size=85" width=85><br><sub>[Developer's name]</sub>](https://github.com/MrZalTy) | [<img src="https://github.com/MrZalTy.png?size=85" width=85><br><sub>[Developer's name]</sub>](https://github.com/MrZalTy)
 | :---: | :---: | :---: |
 
 Manager
-| [<img src="https://github.com/adrienfort.png?size=85" width=85><br><sub>[Manager's name]</sub>](https://github.com/adrienfort)
+| [<img src="https://github.com/RezaRahemtola.png?size=85" width=85><br><sub>[Reza Rahemtola]</sub>](https://github.com/RezaRahemtola)
 | :---: |
 
 <h2 align=center>
