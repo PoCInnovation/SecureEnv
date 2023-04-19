@@ -2,7 +2,8 @@
 
 # [PROJECT'S NAME]
 
-[Project's description]
+The goal is to create a CLI that can interact with a backend to manage and synchronize environment variables in projects. 
+First, a prototype for local synchronization will be made (.env or .envrc), then the goal will be to explore the possibilities of the Vault and extend the synchronization to containers or other environments.
 
 ## How does it work?
 
