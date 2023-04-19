@@ -32,7 +32,7 @@ If you're interested in how the project is organized at a higher level, please c
 ## Our PoC team ❤️
 
 Developers
-| [<img src="https://github.com/vahand.png?size=60" width=60><br><sub>[Vahan Ducher]</sub>](https://github.com/vahand) | [<img src="https://github.com/grittner.png?size=60" width=60><br><sub>[Gatien Rittner]</sub>](https://github.com/grittner) | [<img src="https://github.com/Matribuk.png?size=60" width=60><br><sub>[Antonin Leprest]</sub>](https://github.com/Matribuk) | [<img src="https://github.com/adamdeziri.png?size=60" width=60><br><sub>[Adam Deziri]</sub>](https://github.com/adamdeziri)
+| [<img src="https://github.com/vahand.png?size=60" width=60><br><sub>[Vahan Ducher]</sub>](https://github.com/vahand) | [<img src="https://github.com/grittner.png?size=60" width=60><br><sub>[Gatien Rittner]</sub>](https://github.com/grittner) | [<img src="https://github.com/Matribuk.png?size=60" width=60><br><sub>[Antonin Leprest]</sub>](https://github.com/Matribuk)
 
 Manager
 | [<img src="https://github.com/RezaRahemtola.png?size=60" width=60><br><sub>[Reza Rahemtola]</sub>](https://github.com/RezaRahemtola)
