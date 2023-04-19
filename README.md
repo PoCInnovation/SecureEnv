@@ -1,27 +1,27 @@
 > If you see this section, you've just created a repository using [PoC Innovation's Open-Source project template](https://github.com/PoCInnovation/open-source-project-template). Check the [getting started guide](./.github/getting-started.md).
 
-# [PROJECT'S NAME]
+# SecureEnv
 
 The goal is to create a CLI that can interact with a backend to manage and synchronize environment variables in projects. 
 First, a prototype for local synchronization will be made (.env or .envrc), then the goal will be to explore the possibilities of the Vault and extend the synchronization to containers or other environments.
 
 ## How does it work?
 
-[Explain how this project is working]
+[COMING SOON]
 
 ## Getting Started
 
 ### Installation
 
-[Explain how to install all of the project's dependencies]
+[COMING SOON]
 
 ### Quickstart
 
-[Explain how to run this project]
+[COMING SOON]
 
 ### Usage
 
-[Explain how to use this project]
+[COMING SOON]
 
 ## Get involved
 
