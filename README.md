@@ -1,8 +1,8 @@
-> If you see this section, you've just created a repository using [PoC Innovation's Open-Source project template](https://github.com/PoCInnovation/open-source-project-template). Check the [getting started guide](./.github/getting-started.md).
 
-# [PROJECT'S NAME]
+# SecureEnv
 
-[Project's description]
+The goal is to create a CLI that can interact with a backend to manage and synchronize environment variables in projects.
+First, a prototype for local synchronization will be made (`.env` or `.envrc`), then the goal will be to explore the possibilities of the Vault and extend the synchronization to containers or other environments.
 
 ## How does it work?
 
@@ -12,15 +12,30 @@
 
 ### Installation
 
-[Explain how to install all of the project's dependencies]
+```shell
+git clone https://github.com/PoCInnovation/SecureEnv.git
+```
+```shell
+export VAULT_TOKEN="YOUR PASSWORD"
+```
 
 ### Quickstart
 
-[Explain how to run this project]
+```shell
+docker compose up --build
+```
 
 ### Usage
 
-[Explain how to use this project]
+API Website :
+```shell
+http://0.0.0.0:3000
+```
+
+VAULT Website :
+```shell
+http://0.0.0.0:8200
+```
 
 ## Get involved
 
@@ -31,11 +46,11 @@ If you're interested in how the project is organized at a higher level, please c
 ## Our PoC team ❤️
 
 Developers
-| [<img src="https://github.com/MrZalTy.png?size=85" width=85><br><sub>[Developer's name]</sub>](https://github.com/MrZalTy) | [<img src="https://github.com/MrZalTy.png?size=85" width=85><br><sub>[Developer's name]</sub>](https://github.com/MrZalTy) | [<img src="https://github.com/MrZalTy.png?size=85" width=85><br><sub>[Developer's name]</sub>](https://github.com/MrZalTy)
-| :---: | :---: | :---: |
+| [<img src="https://github.com/vahand.png?size=85" width=85><br><sub>Vahan Ducher</sub>](https://github.com/vahand) | [<img src="https://github.com/grittner.png?size=85" width=85><br><sub>Gatien Rittner</sub>](https://github.com/grittner) | [<img src="https://github.com/Matribuk.png?size=85" width=85><br><sub>Antonin Leprest</sub>](https://github.com/Matribuk) | [<img src="https://github.com/adamdeziri.png?size=85" width=85><br><sub>Adam Deziri</sub>](https://github.com/adamdeziri)
+|:---:|:---:|:---:|:---:|
 
 Manager
-| [<img src="https://github.com/adrienfort.png?size=85" width=85><br><sub>[Manager's name]</sub>](https://github.com/adrienfort)
+| [<img src="https://github.com/RezaRahemtola.png?size=85" width=60><br><sub>Reza Rahemtola</sub>](https://github.com/RezaRahemtola)
 | :---: |
 
 <h2 align=center>
