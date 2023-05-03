@@ -12,4 +12,5 @@ func main() {
 	router.Use(middlewares.CorsMiddleware())
 	routes.ApplyRoutes(router)
 	router.Run(":8080")
+	return
 }

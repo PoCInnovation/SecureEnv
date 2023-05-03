@@ -9,7 +9,7 @@ services:
     volumes:
       - ./Vault/data:/app
     environment:
-      - VAULT_DEV_ROOT_TOKEN_ID=dev-only-token
+      - VAULT_DEV_ROOT_TOKEN_ID=${TOKEN_VAULT}
     networks:
       - vault-net
 
