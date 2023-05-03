@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  vault-docker:
+    build: ./Vault
+    ports:
+      - "8200:8200"
+      - "8201:8201"
+    volumes:
+      - ./Vault/data:/app
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=dev-only-token
+    networks:
+      - vault-net
+
+  frontend:
+    build: ./FrontEnd
+    ports:
+      - "3000:4173"
+    environment:
+      - REACT_APP_BACKEND_URL=http://backend:8080
+    networks:
+      - vault-net
+
+  backend:
+    build: ./BackEnd
+    ports:
+      - "8080:8080"
+    environment:
+      - TOKEN_VAULT=${TOKEN_VAULT}
+    networks:
+      - vault-net
+
+networks:
+  vault-net:
+    driver: bridge
