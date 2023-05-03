@@ -16,7 +16,7 @@ First, a prototype for local synchronization will be made (`.env` or `.envrc`), 
 git clone https://github.com/PoCInnovation/SecureEnv.git
 ```
 ```shell
-export VAULT_TOKEN="YOUR PASSWORD"
+export TOKEN_VAULT="YOUR PASSWORD"
 ```
 
 ### Quickstart
