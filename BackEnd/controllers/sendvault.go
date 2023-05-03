@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	vault "github.com/hashicorp/vault/api"
 )
 
 func CallVault(message1 string, message2 string) string {
+	var token string = os.Getenv("TOKEN_VAULT")
 	config := vault.DefaultConfig()
 
 	config.Address = "http://vault-docker:8200"
@@ -20,7 +22,7 @@ func CallVault(message1 string, message2 string) string {
 	}
 
 	// Authenticate``
-	client.SetToken("dev-only-token")
+	client.SetToken(token)
 
 	secretData := map[string]interface{}{
 		message1: message2,
