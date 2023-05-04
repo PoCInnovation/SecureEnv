@@ -7,13 +7,17 @@ import (
 	"log"
 )
 
-func Sget(name string, secretData map[string]interface{}, client *vault.Client) bool {
+func Sget(name string, key string, client *vault.Client) {
 
-	_, err := client.KVv2("secret").Put(context.Background(), name, secretData)
+	secret, err := client.KVv2("secret").Get(context.Background(), name)
 	if err != nil {
-		log.Fatalf("unable to write secret: %v", err)
+		log.Fatalf("unable to read secret: %v", err)
 	}
 
-	fmt.Println("Secret written successfully.")
-	return true
+	value, ok := secret.Data[key].(string)
+	if !ok {
+		log.Fatalf("value type assertion failed: %T %#v", secret.Data[key], secret.Data[key])
+	}
+
+	fmt.Println("Access granted! the value of the secret is: ", value)
 }

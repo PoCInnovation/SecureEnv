@@ -37,7 +37,7 @@ func main() {
 			secretData := map[string]interface{}{
 				args[1]: args[2],
 			}
-			vault_actions.Sget(args[0], secretData, client)
+			vault_actions.Screate(args[0], secretData, client)
 			return nil
 		},
 	}
@@ -62,10 +62,10 @@ func main() {
 		ShortHelp:  "get the content of a a secret.",
 		Exec: func(_ context.Context, args []string) error {
 
-			if n := len(args); n != 1 {
-				return fmt.Errorf("create requires 1 arguments, but you provided %d", n)
+			if n := len(args); n != 2 {
+				return fmt.Errorf("create requires 2 arguments, name and key")
 			}
-			fmt.Fprintf(os.Stdout, "secret named '%s' deleted\n", args[0])
+			vault_actions.Sget(args[0], args[1], client)
 			return nil
 		},
 	}
