@@ -1,12 +1,14 @@
 package main
 
 import (
+	"cli/vault_actions"
 	"context"
 	"flag"
 	"fmt"
-	"os"
-
+	vault "github.com/hashicorp/vault/api"
 	"github.com/peterbourgon/ff/v3/ffcli"
+	"log"
+	"os"
 )
 
 func main() {
@@ -15,16 +17,27 @@ func main() {
 		rootFlagSet = flag.NewFlagSet("textctl", flag.ExitOnError)
 	)
 
+	config := vault.DefaultConfig()
+	config.Address = "http://127.0.0.1:8200"
+	client, err := vault.NewClient(config)
+	if err != nil {
+		log.Fatalf("unable to initialize Vault client: %v", err)
+	}
+	client.SetToken("hvs.XArAWGBtDHkC2TyETD0qTpQV")
+
 	screate := &ffcli.Command{
 		Name:       "screate",
 		ShortUsage: "screate [<arg> ...]",
 		ShortHelp:  "Create a new secret.",
 		Exec: func(_ context.Context, args []string) error {
 
-			if n := len(args); n != 2 {
-				return fmt.Errorf("create requires 2 arguments, but you provided %d", n)
+			if n := len(args); n != 3 {
+				return fmt.Errorf("create requires 3 arguments, name, key and content")
 			}
-			fmt.Fprintf(os.Stdout, "creating a secret named : %s\ncontent : %s\n", args[0], args[1])
+			secretData := map[string]interface{}{
+				args[1]: args[2],
+			}
+			vault_actions.Sget(args[0], secretData, client)
 			return nil
 		},
 	}
