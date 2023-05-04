@@ -51,7 +51,7 @@ func main() {
 			if n := len(args); n != 1 {
 				return fmt.Errorf("create requires 1 arguments, but you provided %d", n)
 			}
-			fmt.Fprintf(os.Stdout, "secret named : %s deleted\n", args[0])
+			vault_actions.Sdelete(args[0], client)
 			return nil
 		},
 	}
