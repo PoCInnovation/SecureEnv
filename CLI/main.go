@@ -24,7 +24,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("unable to initialize Vault client: %v", err)
 	}
-	client.SetToken("hvs.t0usBHymghO2Fj9sAqxr1tb7")
+	client.SetToken("hvs.RuYwB2KQ8qEPO3u5cPKsBGyY")
 
 	screate := &ffcli.Command{
 		Name:       "screate",
@@ -50,7 +50,7 @@ func main() {
 		Exec: func(_ context.Context, args []string) error {
 
 			if n := len(args); n != 1 {
-				return fmt.Errorf("create requires 1 arguments, but you provided %d", n)
+				return fmt.Errorf("create requires 1 arguments, name and key but you provided %d", n)
 			}
 			vault_actions.Sdelete(args[0], client)
 			return nil
