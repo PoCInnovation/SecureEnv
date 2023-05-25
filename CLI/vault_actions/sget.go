@@ -10,6 +10,7 @@ import (
 func Sget(name string, key string, client *vault.Client) {
 
 	secret, err := client.KVv2("secret").Get(context.Background(), name)
+
 	if err != nil {
 		log.Fatalf("unable to read secret: %v", err)
 	}

@@ -20,10 +20,11 @@ func main() {
 	config := vault.DefaultConfig()
 	config.Address = "http://127.0.0.1:8200"
 	client, err := vault.NewClient(config)
+
 	if err != nil {
 		log.Fatalf("unable to initialize Vault client: %v", err)
 	}
-	client.SetToken("hvs.XArAWGBtDHkC2TyETD0qTpQV")
+	client.SetToken("hvs.t0usBHymghO2Fj9sAqxr1tb7")
 
 	screate := &ffcli.Command{
 		Name:       "screate",
