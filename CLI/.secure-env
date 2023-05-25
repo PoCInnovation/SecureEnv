@@ -1,0 +1,10 @@
+{
+    "Project": "project-name",
+	"Server":  [ {
+		"Host": "secure-env.corporation.net",
+		"Port": 443,
+		"Token": "hvs.muVcnLYkQHqo3s3hXSpYruto"
+	} ],
+	"Data": {
+	}
+}

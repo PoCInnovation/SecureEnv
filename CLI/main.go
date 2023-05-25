@@ -1,14 +1,16 @@
 package main
 
 import (
+	"cli/parse_file"
 	"cli/vault_actions"
 	"context"
 	"flag"
 	"fmt"
-	vault "github.com/hashicorp/vault/api"
-	"github.com/peterbourgon/ff/v3/ffcli"
 	"log"
 	"os"
+
+	vault "github.com/hashicorp/vault/api"
+	"github.com/peterbourgon/ff/v3/ffcli"
 )
 
 func main() {
@@ -17,13 +19,15 @@ func main() {
 		rootFlagSet = flag.NewFlagSet("textctl", flag.ExitOnError)
 	)
 
+	secure_env := parse_file.Parsefile()
+
 	config := vault.DefaultConfig()
-	config.Address = "http://127.0.0.1:8200"
+	config.Address = secure_env.Server[0].Host
 	client, err := vault.NewClient(config)
 	if err != nil {
 		log.Fatalf("unable to initialize Vault client: %v", err)
 	}
-	client.SetToken("hvs.XArAWGBtDHkC2TyETD0qTpQV")
+	client.SetToken(secure_env.Server[0].Token)
 
 	screate := &ffcli.Command{
 		Name:       "screate",
