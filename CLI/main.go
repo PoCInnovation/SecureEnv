@@ -22,12 +22,12 @@ func main() {
 	secure_env := parse_file.Parsefile()
 
 	config := vault.DefaultConfig()
-	config.Address = secure_env.Server[0].Host
+	config.Address = secure_env.Host
 	client, err := vault.NewClient(config)
 	if err != nil {
 		log.Fatalf("unable to initialize Vault client: %v", err)
 	}
-	client.SetToken(secure_env.Server[0].Token)
+	client.SetToken(secure_env.Token)
 
 	screate := &ffcli.Command{
 		Name:       "screate",

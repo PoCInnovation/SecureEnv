@@ -1,29 +1,30 @@
 package parse_file
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
+	"strconv"
+
+	"github.com/joho/godotenv"
 )
 
 type Configuration struct {
 	Project string
-	Server  []Server_var
-}
-
-type Server_var struct {
-	Host  string
-	Port  int
-	Token string
+	Host    string
+	Port    int
+	Token   string
 }
 
 func Parsefile() Configuration {
 	var config Configuration
-	data, err := ioutil.ReadFile(".secure-env")
+	err := godotenv.Load("secure-env.env")
 	if err != nil {
 		fmt.Println("File reading error", err)
 		return config
 	}
-	json.Unmarshal(data, &config)
+	config.Project = os.Getenv("PROJECT")
+	config.Host = os.Getenv("HOST")
+	config.Port, err = strconv.Atoi(os.Getenv("PORT"))
+	config.Token = os.Getenv("TOKEN")
 	return config
 }
