@@ -24,6 +24,7 @@ func main() {
 	config := vault.DefaultConfig()
 	config.Address = secure_env.Host
 	client, err := vault.NewClient(config)
+
 	if err != nil {
 		log.Fatalf("unable to initialize Vault client: %v", err)
 	}
@@ -53,7 +54,7 @@ func main() {
 		Exec: func(_ context.Context, args []string) error {
 
 			if n := len(args); n != 1 {
-				return fmt.Errorf("create requires 1 arguments, but you provided %d", n)
+				return fmt.Errorf("create requires 1 arguments, name and key but you provided %d", n)
 			}
 			vault_actions.Sdelete(args[0], client)
 			return nil

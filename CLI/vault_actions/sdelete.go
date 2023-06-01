@@ -8,7 +8,13 @@ import (
 
 func Sdelete(name string, client *vault.Client) {
 
-	err := client.KVv2("secret").Delete(context.Background(), name)
+	_, err := client.KVv2("secret").Get(context.Background(), name)
+
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+
+	err = client.KVv2("secret").Delete(context.Background(), name)
 	if err != nil {
 		log.Fatalf("unable to delete secret: %v", err)
 	} else {
