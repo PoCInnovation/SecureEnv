@@ -14,7 +14,7 @@ VOLUME /vault/certs/
 VOLUME /vault/data/
 
 COPY config.hcl /vault/config/
-COPY unseal-script.sh /vault/
+COPY start.sh /vault/
 COPY key.pem /vault/certs/
 COPY cert.pem /vault/certs/
 
