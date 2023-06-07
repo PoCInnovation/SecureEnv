@@ -22,6 +22,7 @@ VOLUME data/
 
 COPY config.hcl config/
 COPY start.sh .
+COPY credentials.sh .
 COPY key.pem certs/
 COPY cert.pem certs/
 

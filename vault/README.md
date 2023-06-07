@@ -39,4 +39,14 @@ docker exec vault-instance /vault/start.sh
 
 This command runs the `start.sh` script inside the running 'vault-instance' Docker container, performing necessary initializations and unsealing operations on the Vault.
 
+## Accessing the Vault's credentials
+
+To access the credentials of your Vault instance, use the following command:
+
+```bash
+docker exec vault-instance /vault/credentials.sh
+```
+
+This command runs the `credentials.sh` script inside the running 'vault-instance' Docker container, retrieving the credentials on the Vault.
+
 Remember to follow these steps carefully to ensure the security and proper functioning of your Vault instance.
