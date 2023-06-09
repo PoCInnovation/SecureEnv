@@ -3,8 +3,9 @@ package vault_actions
 import (
 	"context"
 	"fmt"
-	vault "github.com/hashicorp/vault/api"
 	"log"
+
+	vault "github.com/hashicorp/vault/api"
 )
 
 func Screate(name string, secretData map[string]interface{}, client *vault.Client) bool {

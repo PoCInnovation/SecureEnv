@@ -38,9 +38,15 @@ func main() {
 			if n := len(args); n != 3 {
 				return fmt.Errorf("create requires 3 arguments, name, key and content")
 			}
-			secretData := map[string]interface{}{
-				args[1]: args[2],
+
+			secret, err := client.KVv2("secret").Get(context.Background(), args[0])
+			if err != nil {
+				log.Fatalf("unable to read secret: %v", err)
 			}
+
+			secretData := secret.Data
+			secretData[args[1]] = args[2]
+			fmt.Println(secretData)
 			vault_actions.Screate(args[0], secretData, client)
 			return nil
 		},
@@ -74,10 +80,20 @@ func main() {
 		},
 	}
 
+	push := &ffcli.Command{
+		Name:       "push",
+		ShortUsage: "push",
+		ShortHelp:  "Push a file to Vault.",
+		Exec: func(_ context.Context, args []string) error {
+			vault_actions.Push(client)
+			return nil
+		},
+	}
+
 	root := &ffcli.Command{
 		ShortUsage:  "textctl [flags] <subcommand>",
 		FlagSet:     rootFlagSet,
-		Subcommands: []*ffcli.Command{sdelete, screate, sget},
+		Subcommands: []*ffcli.Command{sdelete, screate, sget, push},
 		Exec: func(context.Context, []string) error {
 			return flag.ErrHelp
 		},
