@@ -20,14 +20,14 @@ func Sdelete_var(client *vault.Client) *ffcli.Command {
 			if n := len(args); n != 1 {
 				return fmt.Errorf("create requires 1 arguments, name and key but you provided %d", n)
 			}
-			Sdelete(args[0], client)
+			sdelete(args[0], client)
 			return nil
 		},
 	}
 	return sdelete
 }
 
-func Sdelete(name string, client *vault.Client) {
+func sdelete(name string, client *vault.Client) {
 
 	_, err := client.KVv2("secret").Get(context.Background(), name)
 

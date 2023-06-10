@@ -46,14 +46,14 @@ func Spush_var(client *vault.Client) *ffcli.Command {
 		ShortUsage: "push",
 		ShortHelp:  "Push a file to Vault.",
 		Exec: func(_ context.Context, args []string) error {
-			Push(client)
+			push(client)
 			return nil
 		},
 	}
 	return push
 }
 
-func Push(client *vault.Client) bool {
+func push(client *vault.Client) bool {
 
 	lines := linesInFile(".env")
 	secretData := map[string]interface{}{}

@@ -20,14 +20,14 @@ func Sget_var(client *vault.Client) *ffcli.Command {
 			if n := len(args); n != 2 {
 				return fmt.Errorf("create requires 2 arguments, name and key")
 			}
-			Sget(args[0], args[1], client)
+			sget(args[0], args[1], client)
 			return nil
 		},
 	}
 	return sget
 }
 
-func Sget(name string, key string, client *vault.Client) {
+func sget(name string, key string, client *vault.Client) {
 
 	secret, err := client.KVv2("secret").Get(context.Background(), name)
 
