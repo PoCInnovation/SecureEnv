@@ -3,9 +3,29 @@ package vault_actions
 import (
 	"context"
 	"fmt"
-	vault "github.com/hashicorp/vault/api"
 	"log"
+
+	vault "github.com/hashicorp/vault/api"
+	"github.com/peterbourgon/ff/v3/ffcli"
 )
+
+func Sget_var(client *vault.Client) *ffcli.Command {
+
+	sget := &ffcli.Command{
+		Name:       "sget",
+		ShortUsage: "sget [<arg> ...]",
+		ShortHelp:  "get the content of a secret.",
+		Exec: func(_ context.Context, args []string) error {
+
+			if n := len(args); n != 2 {
+				return fmt.Errorf("create requires 2 arguments, name and key")
+			}
+			Sget(args[0], args[1], client)
+			return nil
+		},
+	}
+	return sget
+}
 
 func Sget(name string, key string, client *vault.Client) {
 

@@ -17,7 +17,7 @@ type Configuration struct {
 
 func Parsefile() Configuration {
 	var config Configuration
-	err := godotenv.Load("secure-env.env")
+	err := godotenv.Load(".env")
 	if err != nil {
 		fmt.Println("File reading error", err)
 		return config
