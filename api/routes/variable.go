@@ -27,19 +27,22 @@ func var_add(c *gin.Context) {
 	})
 }
 
-//func var_edit(c *gin.Context) {
-//	name_project := c.Param("name")
-//	response := controllers.Edit_vars(name_project)
-//	c.JSON(200, gin.H{
-//		"message": response,
-//	})
-//}
-//
-//func var_del(c *gin.Context) {
-//	name_project := c.Param("name")
-//	response := controllers.Del_vars(name_project)
-//	c.JSON(200, gin.H{
-//		"message": response,
-//	})
-//}
-//
+func var_edit(c *gin.Context) {
+	var myVar data.Vardata
+	c.ShouldBindJSON(&myVar)
+	name_project := c.Param("project")
+	name_var := c.Param("variable")
+	response := controllers.Edit_vars(name_project, name_var, myVar.Value)
+	c.JSON(200, gin.H{
+		"message": response,
+	})
+}
+
+func var_del(c *gin.Context) {
+	name_project := c.Param("project")
+	name_var := c.Param("variable")
+	response := controllers.Del_vars(name_project, name_var)
+	c.JSON(200, gin.H{
+		"message": response,
+	})
+}

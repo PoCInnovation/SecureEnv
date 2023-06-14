@@ -84,3 +84,82 @@ func Add_vars(name_project string, var_name string, var_data string) string {
 
 	return "write successfull"
 }
+
+func Edit_vars(name_project string, var_name string, var_data string) string {
+	// Auth -> Vault
+
+	config := vault.DefaultConfig()
+
+	config.Address = adr_vault
+
+	client, err := vault.NewClient(config)
+	if err != nil {
+		log.Fatalf("unable to initialize Vault client: %v", err)
+		return "error"
+	}
+
+	client.SetToken(token)
+
+	// Ask the engine version of the project
+	var temp_json = List_vars(name_project)
+
+	var data map[string]interface{}
+	_ = json.Unmarshal([]byte(temp_json), &data)
+
+	// Edit the variable value
+	if _, ok := data[var_name]; ok {
+		data[var_name] = var_data
+	} else {
+		// Variable not found
+		return "variable not found"
+	}
+
+	// Send the updated data
+	_, err = client.KVv2("secret").Put(context.Background(), name_project, data)
+	if err != nil {
+		fmt.Println("unable to write secret: ", err)
+		return "error"
+	}
+
+	return "write successful"
+}
+
+func Del_vars(name_project string, var_name string) string {
+	// Auth -> Vault
+
+	config := vault.DefaultConfig()
+
+	config.Address = adr_vault
+
+	client, err := vault.NewClient(config)
+	if err != nil {
+		log.Fatalf("unable to initialize Vault client: %v", err)
+		return "error"
+	}
+
+	client.SetToken(token)
+
+	// Ask the engine version of the project
+	var temp_json = List_vars(name_project)
+
+	var data map[string]interface{}
+	_ = json.Unmarshal([]byte(temp_json), &data)
+
+	// Check if the variable exists
+	if _, ok := data[var_name]; ok {
+		// Remove the variable
+		delete(data, var_name)
+	} else {
+		// Variable not found
+		return "variable not found"
+	}
+
+	// Send the updated data
+	_, err = client.KVv2("secret").Put(context.Background(), name_project, data)
+	if err != nil {
+		fmt.Println("unable to write secret: ", err)
+		return "error"
+	}
+
+	return "variable removed successfully"
+}
