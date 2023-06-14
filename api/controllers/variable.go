@@ -5,14 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 
 	vault "github.com/hashicorp/vault/api"
 )
-
-const adr_vault = "https://secure-env.poc-innovation.com:8200"
-
-var token string = os.Getenv("TOKEN_VPS_VAULT")
 
 func List_vars(name_project string) string {
 	// Auth -> Vault
