@@ -11,12 +11,11 @@ import (
 )
 
 func List_vars(client *vault.Client, name_project string) (string, int) {
-	//Ask to engine "secret"
+	// Ask to engine "secret"
 	secret, err := client.KVv2("secret").Get(context.Background(), name_project)
 	if err != nil {
 		errMsg := err.Error()
 		if strings.Contains(errMsg, "secret not found: at") {
-			fmt.Println("project not found")
 			return "project not found", http.StatusNotFound
 		}
 		fmt.Println("unable to read secret:", err)
@@ -24,7 +23,6 @@ func List_vars(client *vault.Client, name_project string) (string, int) {
 	}
 
 	if len(secret.Data) == 0 {
-		fmt.Println("No secret")
 		return "No secret", http.StatusOK
 	}
 
@@ -38,7 +36,7 @@ func Add_vars(client *vault.Client, name_project string, var_name string, var_da
 		var_name: var_data,
 	}
 
-	//Ask to engine version of project
+	// Ask to engine version of project
 	var temp_json, statusCode = List_vars(client, name_project)
 	if statusCode == http.StatusNotFound {
 		return "project not found", statusCode
@@ -53,7 +51,7 @@ func Add_vars(client *vault.Client, name_project string, var_name string, var_da
 		data[key] = value
 	}
 
-	//Send new version concat with old version
+	// Send new version concat with old version
 	_, err := client.KVv2("secret").Put(context.Background(), name_project, data)
 	if err != nil {
 		fmt.Println("unable to write secret: ", err)
