@@ -37,7 +37,7 @@ func Add_vars(client *vault.Client, name_project string, var_name string, var_da
 	}
 
 	// Ask to engine version of project
-	var temp_json, statusCode = List_vars(client, name_project)
+	temp_json, statusCode := List_vars(client, name_project)
 	if statusCode == http.StatusNotFound {
 		return "project not found", statusCode
 	} else if statusCode >= http.StatusBadRequest {
@@ -63,7 +63,7 @@ func Add_vars(client *vault.Client, name_project string, var_name string, var_da
 
 func Edit_vars(client *vault.Client, name_project string, var_name string, var_data string) (string, int) {
 	// Ask the engine version of the project
-	var temp_json, statusCode = List_vars(client, name_project)
+	temp_json, statusCode := List_vars(client, name_project)
 	if statusCode == http.StatusNotFound {
 		return "project not found", statusCode
 	} else if statusCode >= http.StatusBadRequest {
@@ -94,7 +94,7 @@ func Edit_vars(client *vault.Client, name_project string, var_name string, var_d
 
 func Del_vars(client *vault.Client, name_project string, var_name string) (string, int) {
 	// Ask the engine version of the project
-	var temp_json, statusCode = List_vars(client, name_project)
+	temp_json, statusCode := List_vars(client, name_project)
 	if statusCode == http.StatusNotFound {
 		return "project not found", statusCode
 	} else if statusCode >= http.StatusBadRequest {
