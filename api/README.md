@@ -1,5 +1,3 @@
-# RESTful API
-
 # **Documentation de l'API**
 
 L'API fournit une interface pour interagir avec un "vault". Voici la structure de base du code de l'API :
