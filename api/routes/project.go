@@ -12,7 +12,7 @@ import (
 
 func project_list(c *gin.Context) {
 	response, statusCode := controllers.List_projects(middlewares.GetClient(c))
-	if statusCode >= http.StatusBadRequest {
+	if statusCode != http.StatusOK {
 		c.JSON(statusCode, gin.H{
 			"error": response,
 		})
@@ -29,7 +29,7 @@ func project_create(c *gin.Context) {
 	c.ShouldBindJSON(&myVar)
 
 	response, statusCode := controllers.Create_project(middlewares.GetClient(c), myVar.Value)
-	if statusCode >= http.StatusBadRequest {
+	if statusCode != http.StatusOK {
 		c.JSON(statusCode, gin.H{
 			"error": response,
 		})
@@ -47,7 +47,7 @@ func project_edit(c *gin.Context) {
 	c.ShouldBindJSON(&myVar)
 
 	response, statusCode := controllers.Edit_project(middlewares.GetClient(c), name_project, myVar.Value)
-	if statusCode >= http.StatusBadRequest {
+	if statusCode != http.StatusOK {
 		c.JSON(statusCode, gin.H{
 			"error": response,
 		})
@@ -63,7 +63,7 @@ func project_del(c *gin.Context) {
 	name_project := c.Param("project")
 
 	response, statusCode := controllers.Del_project(middlewares.GetClient(c), name_project)
-	if statusCode >= http.StatusBadRequest {
+	if statusCode != http.StatusOK {
 		c.JSON(statusCode, gin.H{
 			"error": response,
 		})
@@ -79,7 +79,7 @@ func project_get(c *gin.Context) {
 	name_project := c.Param("project")
 
 	response, statusCode := controllers.Get_project(middlewares.GetClient(c), name_project)
-	if statusCode >= http.StatusBadRequest {
+	if statusCode != http.StatusOK {
 		c.JSON(statusCode, gin.H{
 			"error": response,
 		})

@@ -14,10 +14,7 @@ func var_list(c *gin.Context) {
 	name_project := c.Param("project")
 
 	response, statusCode := controllers.List_vars(middlewares.GetClient(c), name_project)
-	if statusCode == http.StatusNotFound {
-		c.JSON(statusCode, gin.H{"error": "project not found"})
-		return
-	} else if statusCode >= http.StatusBadRequest {
+	if statusCode >= http.StatusOK {
 		c.JSON(statusCode, gin.H{"error": response})
 		return
 	}
@@ -34,15 +31,8 @@ func var_add(c *gin.Context) {
 	name_var := c.Param("variable")
 
 	response, statusCode := controllers.Add_vars(middlewares.GetClient(c), name_project, name_var, myVar.Value)
-	if statusCode == http.StatusNotFound {
-		c.JSON(statusCode, gin.H{"error": "project not found"})
-		return
-	} else if statusCode >= http.StatusBadRequest {
-		c.JSON(statusCode, gin.H{"error": response})
-		return
-	}
 
-	c.JSON(http.StatusOK, gin.H{
+	c.JSON(statusCode, gin.H{
 		"message": response,
 	})
 }
@@ -54,15 +44,8 @@ func var_edit(c *gin.Context) {
 	name_var := c.Param("variable")
 
 	response, statusCode := controllers.Edit_vars(middlewares.GetClient(c), name_project, name_var, myVar.Value)
-	if statusCode == http.StatusNotFound {
-		c.JSON(statusCode, gin.H{"error": "project not found"})
-		return
-	} else if statusCode >= http.StatusBadRequest {
-		c.JSON(statusCode, gin.H{"error": response})
-		return
-	}
 
-	c.JSON(http.StatusOK, gin.H{
+	c.JSON(statusCode, gin.H{
 		"message": response,
 	})
 }
@@ -72,15 +55,8 @@ func var_del(c *gin.Context) {
 	name_var := c.Param("variable")
 
 	response, statusCode := controllers.Del_vars(middlewares.GetClient(c), name_project, name_var)
-	if statusCode == http.StatusNotFound {
-		c.JSON(statusCode, gin.H{"error": "project not found"})
-		return
-	} else if statusCode >= http.StatusBadRequest {
-		c.JSON(statusCode, gin.H{"error": response})
-		return
-	}
 
-	c.JSON(http.StatusOK, gin.H{
+	c.JSON(statusCode, gin.H{
 		"message": response,
 	})
 }
