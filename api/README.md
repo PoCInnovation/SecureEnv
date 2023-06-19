@@ -1,6 +1,6 @@
-# **Documentation de l'API**
+# **API Documentation**
 
-L'API fournit une interface pour interagir avec un "vault". Voici la structure de base du code de l'API :
+The API provides an interface to interact with a vault. Here is the basic structure of the API code:
 
 ```go
 func main() {
@@ -13,64 +13,64 @@ func main() {
 }
 ```
 
-La documentation ci-dessous détaille les différentes routes et fonctionnalités offertes par cette API.
+The documentation below details the different routes and functionalities offered by this API.
 
 ## **Middlewares**
 
 ### **CorsMiddleware**
 
-Le middleware **`CorsMiddleware`** permet de gérer les problèmes de CORS (Cross-Origin Resource Sharing) en ajoutant les en-têtes appropriés aux réponses. Il permet aux requêtes provenant de différents domaines d'accéder aux ressources de l'API.
+The **`CorsMiddleware`** middleware handles Cross-Origin Resource Sharing (CORS) issues by adding appropriate headers to the responses. It allows requests from different domains to access the API's resources.
 
 ### **AuthMiddleware**
 
-Le middleware **`AuthMiddleware`** est responsable de l'authentification des clients avec le "vault". Il utilise les variables d'environnement **`ADDRESS_VPS_VAULT`** et **`TOKEN_VPS_VAULT`** pour se connecter au "vault". Une fois authentifié, il stocke le client "vault" dans le contexte de la requête pour une utilisation ultérieure.
+The **`AuthMiddleware`** middleware is responsible for client authentication with the vault. It uses the environment variables **`ADDRESS_VPS_VAULT`** and **`TOKEN_VPS_VAULT`** to connect to the vault. Once authenticated, it stores the vault client in the request context for later use.
 
 ## **Routes**
 
-### Body (JSON)
+### **Body (JSON)**
 
-```json
+```
 {
-	"Value":"Remplacez par la valeur attendu"
+	"Value": "Replace with the expected value"
 }
 ```
 
 ### **GET /project/**
 
-Cette route permet de récupérer la liste des projets depuis le "vault".
+This route retrieves the list of projects from the vault.
 
 ### **POST /project/**
 
-Cette route permet de créer un nouveau projet dans le "vault". Les détails du projet doivent être fournis dans le corps de la requête au format JSON.
+This route creates a new project in the vault. The project details must be provided in the request body in JSON format.
 
 ### **PATCH /project/:project/**
 
-Cette route permet de renommer un projet existant dans le "vault". Le nom du projet doit être spécifié dans l'URL et les détails de mise à jour doivent être fournis dans le corps de la requête au format JSON.
+This route renames an existing project in the vault. The project name must be specified in the URL, and the update details should be provided in the request body in JSON format.
 
 ### **DELETE /project/:project/**
 
-Cette route permet de supprimer un projet du "vault". Le nom du projet doit être spécifié dans l'URL.
+This route deletes a project from the vault. The project name must be specified in the URL.
 
 ### **GET /project/:project/**
 
-Cette route permet de récupérer les détails d'un projet spécifique à partir du "vault". Le nom du projet doit être spécifié dans l'URL.
+This route retrieves the details of a specific project from the vault. The project name must be specified in the URL.
 
 ### **GET /project/:project/var/**
 
-Cette route permet de récupérer la liste des variables associées à un projet spécifique à partir du "vault". Le nom du projet doit être spécifié dans l'URL.
+This route retrieves the list of variables associated with a specific project from the vault. The project name must be specified in the URL.
 
 ### **POST /project/:project/var/:variable**
 
-Cette route permet d'ajouter une nouvelle variable à un projet spécifique dans le "vault". Le nom du projet et le nom de la variable doivent être spécifiés dans l'URL, et les détails de la variable doivent être fournis dans le corps de la requête au format JSON.
+This route adds a new variable to a specific project in the vault. The project name and variable name must be specified in the URL, and the variable details should be provided in the request body in JSON format.
 
 ### **PATCH /project/:project/var/:variable**
 
-Cette route permet de modifier une variable existante dans un projet spécifique du "vault". Le nom du projet et le nom de la variable doivent être spécifiés dans l'URL, et les détails de mise à jour doivent être fournis dans le corps de la requête au format JSON.
+This route modifies an existing variable in a specific project in the vault. The project name and variable name must be specified in the URL, and the update details should be provided in the request body in JSON format.
 
 ### **DELETE /project/:project/var/:variable**
 
-Cette route permet de supprimer une variable d'un projet spécifique dans le "vault". Le nom du projet et le nom de la variable doivent être spécifiés dans l'URL.
+This route deletes a variable from a specific project in the vault. The project name and variable name must be specified in the URL.
 
-Veuillez noter que pour accéder à ces routes, vous devez vous assurer que l'authentification est effectuée avec succès via le middleware **`AuthMiddleware`**.
+Please note that to access these routes, you need to ensure that authentication is successfully performed using the **`AuthMiddleware`** middleware.
 
-Ceci conclut la documentation de l'API. Pour toute question supplémentaire, veuillez contacter le développeur.
+This concludes the API documentation. For any further questions, please contact the developer.
