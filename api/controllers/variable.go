@@ -26,7 +26,7 @@ func List_vars(client *vault.Client, name_project string) (string, int) {
 		return "No secret", http.StatusNoContent
 	}
 
-	jsonData, err := json.Marshal(secret.Data)
+	jsonData, _ := json.Marshal(secret.Data)
 
 	return string(jsonData), http.StatusOK
 }

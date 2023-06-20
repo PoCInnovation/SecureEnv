@@ -30,21 +30,25 @@ func List_projects(client *vault.Client) (string, int) {
 		return "error read engine", http.StatusInternalServerError
 	}
 
-	if len(secretList.Data) == 0 {
-		return "No Project", http.StatusOK
+	if secretList == nil {
+		data := map[string]interface{}{
+			"projects": []interface{}{},
+		}
+		jsonData, _ := json.Marshal(data)
+		return string(jsonData), http.StatusOK
 	}
 
 	secretList.Data["projects"] = secretList.Data["keys"]
 	delete(secretList.Data, "keys")
 
-	jsonData, err := json.Marshal(secretList.Data)
+	jsonData, _ := json.Marshal(secretList.Data)
 
 	return string(jsonData), http.StatusOK
 }
 
 func Create_project(client *vault.Client, projectName string) (string, int) {
 	// Check correct char of name
-	if isValidString(projectName) != true {
+	if !isValidString(projectName) {
 		return "Project name contains invalid characters", http.StatusNotAcceptable
 	}
 
@@ -61,11 +65,7 @@ func Create_project(client *vault.Client, projectName string) (string, int) {
 		return "Error decoding project list", http.StatusInternalServerError
 	}
 
-	projects, ok := data["projects"].([]interface{})
-	if !ok {
-		fmt.Println("Invalid project list format")
-		return "Invalid project list format", http.StatusInternalServerError
-	}
+	projects := data["projects"].([]interface{})
 
 	// Compare list of project to very if already exists
 	for _, project := range projects {
@@ -89,7 +89,7 @@ func Create_project(client *vault.Client, projectName string) (string, int) {
 
 func Edit_project(client *vault.Client, projectName string, newProjectName string) (string, int) {
 	// Check correct char of name
-	if isValidString(projectName) != true {
+	if !isValidString(projectName) {
 		return "Project name contains invalid characters", http.StatusNotAcceptable
 	}
 
@@ -106,11 +106,7 @@ func Edit_project(client *vault.Client, projectName string, newProjectName strin
 		return "Error decoding project list", http.StatusInternalServerError
 	}
 
-	projects, ok := data["projects"].([]interface{})
-	if !ok {
-		fmt.Println("Invalid project list format:", projects)
-		return "Invalid project list format", http.StatusInternalServerError
-	}
+	projects := data["projects"].([]interface{})
 
 	// Compare list of project to very if already exists
 	for _, project := range projects {
@@ -136,7 +132,7 @@ func Edit_project(client *vault.Client, projectName string, newProjectName strin
 		fmt.Println("Unable to rename project:", err)
 		return "Error while renaming the project", http.StatusInternalServerError
 	} else {
-		err = client.KVv2("secret").DeleteMetadata(ctx, projectName)
+		_ = client.KVv2("secret").DeleteMetadata(ctx, projectName)
 	}
 	return "Successfully renamed project", http.StatusCreated
 }
@@ -155,11 +151,7 @@ func Del_project(client *vault.Client, projectName string) (string, int) {
 		return "Error decoding project list", http.StatusInternalServerError
 	}
 
-	projects, ok := data["projects"].([]interface{})
-	if !ok {
-		fmt.Println("Invalid project list format:", projects)
-		return "Invalid project list format", http.StatusInternalServerError
-	}
+	projects := data["projects"].([]interface{})
 
 	ctx := context.Background()
 
@@ -187,7 +179,7 @@ func Get_project(client *vault.Client, projectName string) (string, int) {
 		return "Project not Found", http.StatusInternalServerError
 	}
 
-	jsonData, err := json.Marshal(secret)
+	jsonData, _ := json.Marshal(secret)
 
 	return string(jsonData), http.StatusOK
 }
