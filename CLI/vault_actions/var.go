@@ -56,7 +56,7 @@ func secret_create(name string, key string, value string, mainUrl string) {
 		return
 	}
 
-	fmt.Println("Secret created successfully")
+	fmt.Print("Secret \"", key, "\" created successfully\n")
 }
 
 func secret_delete(name string, key string, mainUrl string) {
@@ -81,7 +81,7 @@ func secret_delete(name string, key string, mainUrl string) {
 		return
 	}
 
-	println("Secret deleted")
+	fmt.Print("Secret \"", key, "\" deleted\n")
 }
 
 func secret_edit(name string, key string, value string, mainUrl string) {
@@ -112,5 +112,5 @@ func secret_edit(name string, key string, value string, mainUrl string) {
 		return
 	}
 
-	fmt.Println("Secret modified successfully")
+	fmt.Print("Secret \"", key, "\" modified successfully\n")
 }
