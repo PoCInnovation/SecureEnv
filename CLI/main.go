@@ -19,15 +19,16 @@ func main() {
 	root := &ffcli.Command{
 		ShortUsage: "textctl [flags] <subcommand>",
 		FlagSet:    rootFlagSet,
-		Subcommands: []*ffcli.Command{vault_actions.Get_secret(mainUrl),
-			vault_actions.Delete_secret(mainUrl),
-			vault_actions.Create_secret(mainUrl),
-			vault_actions.Edit_secret(mainUrl),
-			vault_actions.Get_project(mainUrl),
+		Subcommands: []*ffcli.Command{
 			vault_actions.Create_project(mainUrl),
 			vault_actions.Delete_project(mainUrl),
 			vault_actions.Edit_project(mainUrl),
-			vault_actions.List_project(mainUrl)},
+			vault_actions.Get_project(mainUrl),
+			vault_actions.List_project(mainUrl),
+			vault_actions.Create_secret(mainUrl),
+			vault_actions.Delete_secret(mainUrl),
+			vault_actions.Edit_secret(mainUrl),
+			vault_actions.Get_secret(mainUrl)},
 		Exec: func(context.Context, []string) error {
 			return flag.ErrHelp
 		},
