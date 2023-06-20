@@ -23,7 +23,7 @@ func List_vars(client *vault.Client, name_project string) (string, int) {
 	}
 
 	if len(secret.Data) == 0 {
-		return "No secret", http.StatusOK
+		return "No secret", http.StatusNoContent
 	}
 
 	jsonData, err := json.Marshal(secret.Data)
@@ -42,6 +42,8 @@ func Add_vars(client *vault.Client, name_project string, var_name string, var_da
 		return "project not found", statusCode
 	} else if statusCode >= http.StatusBadRequest {
 		return "error", statusCode
+	} else if statusCode == http.StatusNoContent {
+		temp_json = "{}"
 	}
 
 	// Edit engine
@@ -68,6 +70,8 @@ func Edit_vars(client *vault.Client, name_project string, var_name string, var_d
 		return "project not found", statusCode
 	} else if statusCode >= http.StatusBadRequest {
 		return "error", statusCode
+	} else if statusCode == http.StatusNoContent {
+		temp_json = "{}"
 	}
 
 	// Edit the engine
@@ -99,6 +103,8 @@ func Del_vars(client *vault.Client, name_project string, var_name string) (strin
 		return "project not found", statusCode
 	} else if statusCode >= http.StatusBadRequest {
 		return "error", statusCode
+	} else if statusCode == http.StatusNoContent {
+		temp_json = "{}"
 	}
 
 	var data map[string]interface{}
