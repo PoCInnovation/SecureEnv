@@ -23,7 +23,7 @@ The **`CorsMiddleware`** middleware handles Cross-Origin Resource Sharing (CORS)
 
 ### **AuthMiddleware**
 
-The **`AuthMiddleware`** middleware is responsible for client authentication with the vault. It uses the environment variables **`ADDRESS_VPS_VAULT`** and **`TOKEN_VPS_VAULT`** to connect to the vault. Once authenticated, it stores the vault client in the request context for later use.
+The **`AuthMiddleware`** middleware is responsible for client authentication with the vault. It uses the environment variables **`SECURE_ENV_TOKEN`** and **`SECURE_ENV_TOKEN`** to connect to the vault. Once authenticated, it stores the vault client in the request context for later use.
 
 ## **Routes**
 
