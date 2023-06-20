@@ -19,7 +19,7 @@ func main() {
 	root := &ffcli.Command{
 		ShortUsage:  "textctl [flags] <subcommand>",
 		FlagSet:     rootFlagSet,
-		Subcommands: []*ffcli.Command{vault_actions.Sget_var(mainUrl), vault_actions.Sdelete_var(mainUrl)},
+		Subcommands: []*ffcli.Command{vault_actions.Sget_var(mainUrl), vault_actions.Sdelete_var(mainUrl), vault_actions.Screate_var(mainUrl)},
 		Exec: func(context.Context, []string) error {
 			return flag.ErrHelp
 		},
