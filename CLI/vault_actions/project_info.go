@@ -61,7 +61,7 @@ func Create_project(mainUrl string) *ffcli.Command {
 
 func Delete_project(mainUrl string) *ffcli.Command {
 
-	sdelete := &ffcli.Command{
+	pdelete := &ffcli.Command{
 		Name:       "pdelete",
 		ShortUsage: "pdelete [<arg> ...]",
 		ShortHelp:  "Delete a project.",
@@ -74,12 +74,12 @@ func Delete_project(mainUrl string) *ffcli.Command {
 			return nil
 		},
 	}
-	return sdelete
+	return pdelete
 }
 
 func Edit_project(mainUrl string) *ffcli.Command {
 
-	screate := &ffcli.Command{
+	pcreate := &ffcli.Command{
 		Name:       "pedit",
 		ShortUsage: "pedit [<arg> ...]",
 		ShortHelp:  "Rename a project.",
@@ -92,5 +92,5 @@ func Edit_project(mainUrl string) *ffcli.Command {
 			return nil
 		},
 	}
-	return screate
+	return pcreate
 }

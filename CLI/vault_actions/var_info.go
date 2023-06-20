@@ -63,7 +63,7 @@ func Delete_secret(mainUrl string) *ffcli.Command {
 
 func Edit_secret(mainUrl string) *ffcli.Command {
 
-	screate := &ffcli.Command{
+	sedit := &ffcli.Command{
 		Name:       "sedit",
 		ShortUsage: "sedit [<arg> ...]",
 		ShortHelp:  "Edit a secret.",
@@ -76,5 +76,5 @@ func Edit_secret(mainUrl string) *ffcli.Command {
 			return nil
 		},
 	}
-	return screate
+	return sedit
 }
