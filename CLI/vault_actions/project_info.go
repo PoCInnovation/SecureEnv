@@ -43,7 +43,7 @@ func Get_project(mainUrl string) *ffcli.Command {
 }
 
 func Create_project(mainUrl string) *ffcli.Command {
-	pget := &ffcli.Command{
+	pcreate := &ffcli.Command{
 		Name:       "pcreate",
 		ShortUsage: "pcreate [<arg> ...]",
 		ShortHelp:  "Create a project.",
@@ -56,7 +56,7 @@ func Create_project(mainUrl string) *ffcli.Command {
 			return nil
 		},
 	}
-	return pget
+	return pcreate
 }
 
 func Delete_project(mainUrl string) *ffcli.Command {
