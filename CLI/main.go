@@ -17,9 +17,17 @@ func main() {
 	mainUrl := "http://0.0.0.0:8080/project"
 
 	root := &ffcli.Command{
-		ShortUsage:  "textctl [flags] <subcommand>",
-		FlagSet:     rootFlagSet,
-		Subcommands: []*ffcli.Command{vault_actions.Sget_var(mainUrl), vault_actions.Sdelete_var(mainUrl), vault_actions.Screate_var(mainUrl)},
+		ShortUsage: "textctl [flags] <subcommand>",
+		FlagSet:    rootFlagSet,
+		Subcommands: []*ffcli.Command{vault_actions.Get_secret(mainUrl),
+			vault_actions.Delete_secret(mainUrl),
+			vault_actions.Create_secret(mainUrl),
+			vault_actions.Edit_secret(mainUrl),
+			vault_actions.Get_project(mainUrl),
+			vault_actions.Create_project(mainUrl),
+			vault_actions.Delete_project(mainUrl),
+			vault_actions.Edit_project(mainUrl),
+			vault_actions.List_project(mainUrl)},
 		Exec: func(context.Context, []string) error {
 			return flag.ErrHelp
 		},
