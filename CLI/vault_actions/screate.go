@@ -33,12 +33,14 @@ func screate(name string, key string, value string, mainUrl string) {
 
 	url := mainUrl + "/" + name + "/var/" + key
 	println(url)
+
 	bodyjson := map[string]interface{}{
 		"Value": value,
 	}
 	jsonData, err := json.Marshal(bodyjson)
-	bodyBuffer := bytes.NewBuffer(jsonData)
-	req, res := http.NewRequest("POST", url, bodyBuffer)
+
+	req, res := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	req.Header.Set("Content-Type", "application/json")
 	if res != nil {
 		fmt.Println(res)
 		return
