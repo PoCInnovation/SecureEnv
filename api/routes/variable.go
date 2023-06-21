@@ -14,7 +14,7 @@ func var_list(c *gin.Context) {
 	name_project := c.Param("project")
 
 	response, statusCode := controllers.List_vars(middlewares.GetClient(c), name_project)
-	if statusCode >= http.StatusOK {
+	if statusCode >= http.StatusBadRequest {
 		c.JSON(statusCode, gin.H{"error": response})
 		return
 	}
