@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cli/parse_file"
 	"cli/vault_actions"
 	"context"
 	"flag"
@@ -28,7 +29,8 @@ func main() {
 			vault_actions.Create_secret(mainUrl),
 			vault_actions.Delete_secret(mainUrl),
 			vault_actions.Edit_secret(mainUrl),
-			vault_actions.Get_secret(mainUrl)},
+			vault_actions.Get_secret(mainUrl),
+			parse_file.Push_project(mainUrl)},
 		Exec: func(context.Context, []string) error {
 			return flag.ErrHelp
 		},

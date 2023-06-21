@@ -22,9 +22,9 @@ func Parsefile() Configuration {
 		fmt.Println("File reading error", err)
 		return config
 	}
-	config.Project = os.Getenv("SECURE_ENV_PROJECT")
+	config.Project = os.Getenv("SECURE_ENV_PROJECT_NAME")
 	config.Host = os.Getenv("SECURE_ENV_HOST")
-	config.Port, err = strconv.Atoi(os.Getenv("SECURE_ENV_PORT"))
+	config.Port, _ = strconv.Atoi(os.Getenv("SECURE_ENV_PORT"))
 	config.Token = os.Getenv("SECURE_ENV_TOKEN")
 	return config
 }

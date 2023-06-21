@@ -47,7 +47,7 @@ func project_get(name string, mainUrl string) {
 	fmt.Println(string(prettyJSON))
 }
 
-func project_create(name string, mainUrl string) {
+func Project_create(name string, mainUrl string) {
 
 	url := mainUrl + "/"
 

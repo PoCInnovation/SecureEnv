@@ -36,7 +36,7 @@ func Create_secret(mainUrl string) *ffcli.Command {
 			if n := len(args); n != 3 {
 				return fmt.Errorf("create requires 3 arguments, name, key and value but you provided %d", n)
 			}
-			secret_create(args[0], args[1], args[2], mainUrl)
+			Secret_create(args[0], args[1], args[2], mainUrl)
 			return nil
 		},
 	}
@@ -54,7 +54,7 @@ func Delete_secret(mainUrl string) *ffcli.Command {
 			if n := len(args); n != 2 {
 				return fmt.Errorf("delete requires 2 arguments, name and key but you provided %d", n)
 			}
-			secret_delete(args[0], args[1], mainUrl)
+			Secret_delete(args[0], args[1], mainUrl)
 			return nil
 		},
 	}

@@ -28,7 +28,7 @@ func secret_get(name string, mainUrl string) {
 	fmt.Println(string(prettyJSON))
 }
 
-func secret_create(name string, key string, value string, mainUrl string) {
+func Secret_create(name string, key string, value string, mainUrl string) {
 
 	url := mainUrl + "/" + name + "/var/" + key
 
@@ -59,7 +59,7 @@ func secret_create(name string, key string, value string, mainUrl string) {
 	fmt.Print("Secret \"", key, "\" created successfully\n")
 }
 
-func secret_delete(name string, key string, mainUrl string) {
+func Secret_delete(name string, key string, mainUrl string) {
 
 	url := mainUrl + "/" + name + "/var/" + key
 
