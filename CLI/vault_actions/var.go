@@ -13,7 +13,6 @@ func secret_get(name string, mainUrl string) {
 
 	url := mainUrl + "/" + name + "/var"
 
-	println(url)
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Fatalln(err)
@@ -23,14 +22,15 @@ func secret_get(name string, mainUrl string) {
 		log.Fatalln(err)
 	}
 
-	sb := string(body)
-	log.Print(sb)
+	var data map[string]interface{}
+	_ = json.Unmarshal(body, &data)
+	prettyJSON, _ := json.MarshalIndent(data, "", "  ")
+	fmt.Println(string(prettyJSON))
 }
 
 func secret_create(name string, key string, value string, mainUrl string) {
 
 	url := mainUrl + "/" + name + "/var/" + key
-	println(url)
 
 	bodyjson := map[string]interface{}{
 		"Value": value,
@@ -50,23 +50,19 @@ func secret_create(name string, key string, value string, mainUrl string) {
 		return
 	}
 
-	if resp.StatusCode < http.StatusBadRequest {
-		fmt.Println("Secret créé avec succès.")
-	} else {
-		fmt.Println("La création du secret à échoué. Code de statut :", resp.StatusCode)
+	defer resp.Body.Close()
+	if resp.StatusCode >= http.StatusBadRequest {
+		fmt.Print("Failed to create secret \"", key, "\". Status code :", resp.StatusCode, "\n")
 		return
 	}
-	body, _ := ioutil.ReadAll(resp.Body)
-	println(body)
-	defer resp.Body.Close()
 
-	println("Secret created successfully")
+	fmt.Print("Secret \"", key, "\" created successfully\n")
 }
 
 func secret_delete(name string, key string, mainUrl string) {
 
 	url := mainUrl + "/" + name + "/var/" + key
-	println(url)
+
 	req, res := http.NewRequest("DELETE", url, nil)
 	if res != nil {
 		fmt.Println(res)
@@ -79,23 +75,18 @@ func secret_delete(name string, key string, mainUrl string) {
 		return
 	}
 
-	if resp.StatusCode < http.StatusBadRequest {
-		fmt.Println("La ressource a été supprimée avec succès.")
-	} else {
-		fmt.Println("La suppression de la ressource a échoué. Code de statut :", resp.StatusCode)
+	defer resp.Body.Close()
+	if resp.StatusCode >= http.StatusBadRequest {
+		fmt.Print("Failed to delete the secret \"", key, "\". Status code :", resp.StatusCode)
 		return
 	}
-	body, _ := ioutil.ReadAll(resp.Body)
-	println(body)
-	defer resp.Body.Close()
 
-	println("Secret deleted")
+	fmt.Print("Secret \"", key, "\" deleted\n")
 }
 
 func secret_edit(name string, key string, value string, mainUrl string) {
 
 	url := mainUrl + "/" + name + "/var/" + key
-	println(url)
 
 	bodyjson := map[string]interface{}{
 		"Value": value,
@@ -115,15 +106,11 @@ func secret_edit(name string, key string, value string, mainUrl string) {
 		return
 	}
 
-	if resp.StatusCode < http.StatusBadRequest {
-		fmt.Println("Secret modifié avec succès.")
-	} else {
-		fmt.Println("La modification du secret à échoué. Code de statut :", resp.StatusCode)
+	defer resp.Body.Close()
+	if resp.StatusCode >= http.StatusBadRequest {
+		fmt.Print("Failed to modify the secret \"", key, "\". Status code :", resp.StatusCode, "\n")
 		return
 	}
-	body, err := ioutil.ReadAll(resp.Body)
-	println(body)
-	defer resp.Body.Close()
 
-	println("Secret modify successfully")
+	fmt.Print("Secret \"", key, "\" modified successfully\n")
 }
