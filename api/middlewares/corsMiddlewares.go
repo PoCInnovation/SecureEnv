@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -28,6 +29,21 @@ func AuthMiddleware() gin.HandlerFunc {
 		if err != nil {
 			log.Fatalf("unable to initialize Vault client: %v", err)
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "client auth"})
+			return
+		}
+
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing"})
+			c.Abort()
+			return
+		}
+
+		var token string
+		_, err = fmt.Sscanf(authHeader, "Bearer %s", &token)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
+			c.Abort()
 			return
 		}
 
