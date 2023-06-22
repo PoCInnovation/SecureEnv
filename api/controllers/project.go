@@ -183,3 +183,37 @@ func Get_project(client *vault.Client, projectName string) (string, int) {
 
 	return string(jsonData), http.StatusOK
 }
+
+func Update_project(client *vault.Client, projectName string, jsonData map[string]interface{}) (string, int) {
+	// Check if the project exists and get data from them
+	temp_json, statusCode := List_vars(client, projectName)
+	if statusCode == http.StatusNotFound {
+		return "project not found", statusCode
+	} else if statusCode >= http.StatusBadRequest {
+		return "error", statusCode
+	} else if statusCode == http.StatusNoContent {
+		temp_json = "{}"
+	}
+
+	var existingData map[string]interface{}
+	err := json.Unmarshal([]byte(temp_json), &existingData)
+	if err != nil {
+		fmt.Println("Error decoding project data:", err)
+		return "Error decoding project data", http.StatusInternalServerError
+	}
+
+	// Update existing variables and add new variables
+	for key, value := range jsonData {
+		existingData[key] = value
+	}
+
+	// Update the project with the modified data
+	ctx := context.Background()
+	_, err = client.KVv2("secret").Put(ctx, projectName, existingData)
+	if err != nil {
+		fmt.Println("Unable to update project:", err)
+		return "Error updating project", http.StatusInternalServerError
+	}
+
+	return "Project updated successfully", http.StatusOK
+}

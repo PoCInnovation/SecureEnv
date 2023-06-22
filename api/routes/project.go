@@ -90,3 +90,21 @@ func project_get(c *gin.Context) {
 	_ = json.Unmarshal([]byte(response), &data)
 	c.JSON(http.StatusOK, data)
 }
+
+func project_update(c *gin.Context) {
+	name_project := c.Param("project")
+	var newData map[string]interface{}
+	c.ShouldBindJSON(&newData)
+
+	response, statusCode := controllers.Update_project(middlewares.GetClient(c), name_project, newData)
+	if statusCode >= http.StatusBadRequest {
+		c.JSON(statusCode, gin.H{
+			"error": response,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": response,
+	})
+}
