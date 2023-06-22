@@ -25,6 +25,7 @@ func main() {
 			vault_actions.Delete_project(mainUrl),
 			vault_actions.Edit_project(mainUrl),
 			vault_actions.Get_project(mainUrl),
+			parse_file.Get_Config(),
 			vault_actions.List_project(mainUrl),
 			vault_actions.Create_secret(mainUrl),
 			vault_actions.Delete_secret(mainUrl),
