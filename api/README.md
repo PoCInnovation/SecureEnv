@@ -23,7 +23,7 @@ The **`CorsMiddleware`** middleware handles Cross-Origin Resource Sharing (CORS)
 
 ### **AuthMiddleware**
 
-The **`AuthMiddleware`** middleware is responsible for client authentication with the vault. It uses the environment variables **`SECURE_ENV_TOKEN`** and **`SECURE_ENV_TOKEN`** to connect to the vault. Once authenticated, it stores the vault client in the request context for later use.
+The **`AuthMiddleware`** middleware is responsible for authenticating the client to the vault. It uses the **`SECURE_ENV_HOST`** environment variable and a Bearer Token provided in the request header to connect to the vault. Once authenticated, it stores the vault client in the context of the request for later use.
 
 ## **Routes**
 
@@ -43,9 +43,13 @@ This route retrieves the list of projects from the vault.
 
 This route creates a new project in the vault. The project details must be provided in the request body in JSON format.
 
-### **PATCH /project/:project/**
+### **PUT /project/:project/**
 
 This route renames an existing project in the vault. The project name must be specified in the URL, and the update details should be provided in the request body in JSON format.
+
+### **PATCH /project/:project/**
+
+This route adds a secrets json to edit and add project secrets to the vault. The project name must be specified in the URL and the list of secrets to add or modify must be provided in the request body in JSON format.
 
 ### **DELETE /project/:project/**
 
