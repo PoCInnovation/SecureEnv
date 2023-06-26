@@ -2,13 +2,13 @@ package vault_actions
 
 import (
 	"bytes"
-	"cli/parse_file"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"secureenv/parse_file"
 )
 
 func project_list(mainUrl string) {
