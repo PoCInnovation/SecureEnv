@@ -1,6 +1,7 @@
 package vault_actions
 
 import (
+	"cli/parse_file"
 	"context"
 	"fmt"
 
@@ -89,6 +90,26 @@ func Edit_project(mainUrl string) *ffcli.Command {
 				return fmt.Errorf("edit requires 2 arguments, name, and value but you provided %d", n)
 			}
 			project_edit(args[0], args[1], mainUrl)
+			return nil
+		},
+	}
+	return pcreate
+}
+
+func Push_project(mainUrl string) *ffcli.Command {
+
+	config := parse_file.Parsefile()
+	bodyjson := parse_file.GetEnvSecrets()
+	pcreate := &ffcli.Command{
+		Name:       "push",
+		ShortUsage: "push",
+		ShortHelp:  "Push to the project [SECURE_ENV_PROJECT_NAME] all variables written in the .env file execpt SECURE_ENV variables.",
+		Exec: func(_ context.Context, args []string) error {
+
+			if n := len(args); n != 0 {
+				return fmt.Errorf("push requires 0 arguments but you provided %d", n)
+			}
+			project_update(config.Project, bodyjson, mainUrl)
 			return nil
 		},
 	}

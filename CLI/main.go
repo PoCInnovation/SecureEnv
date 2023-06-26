@@ -31,7 +31,7 @@ func main() {
 			vault_actions.Delete_secret(mainUrl),
 			vault_actions.Edit_secret(mainUrl),
 			vault_actions.Get_secret(mainUrl),
-			parse_file.Push_project(mainUrl)},
+			vault_actions.Push_project(mainUrl)},
 		Exec: func(context.Context, []string) error {
 			return flag.ErrHelp
 		},

@@ -112,7 +112,7 @@ func project_edit(name string, value string, mainUrl string) {
 	}
 	jsonData, _ := json.Marshal(bodyjson)
 
-	req, res := http.NewRequest("PATCH", url, bytes.NewBuffer(jsonData))
+	req, res := http.NewRequest("PUT", url, bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 	if res != nil {
 		fmt.Println(res)
@@ -132,4 +132,32 @@ func project_edit(name string, value string, mainUrl string) {
 	}
 
 	fmt.Print("Project \"", name, "\" renamed successfully\n")
+}
+
+func project_update(name string, bodyjson map[string]interface{}, mainUrl string) {
+
+	url := mainUrl + "/" + name
+
+	jsonData, _ := json.Marshal(bodyjson)
+
+	req, res := http.NewRequest("PATCH", url, bytes.NewBuffer(jsonData))
+	req.Header.Set("Content-Type", "application/json")
+	if res != nil {
+		fmt.Println(res)
+		return
+	}
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode >= http.StatusBadRequest {
+		fmt.Print("Failed to update the project \"", name, "\". Status code: ", resp.StatusCode, "\n")
+		return
+	}
+
+	fmt.Print("Project \"", name, "\" updated successfully\n")
 }
