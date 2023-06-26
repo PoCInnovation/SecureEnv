@@ -3,16 +3,12 @@ package parse_file
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/joho/godotenv"
 )
 
 type Configuration struct {
 	Project string
-	Host    string
-	Port    int
-	Token   string
 }
 
 func Parsefile() Configuration {
@@ -23,8 +19,5 @@ func Parsefile() Configuration {
 		return config
 	}
 	config.Project = os.Getenv("SECURE_ENV_PROJECT_NAME")
-	config.Host = os.Getenv("SECURE_ENV_HOST")
-	config.Port, _ = strconv.Atoi(os.Getenv("SECURE_ENV_PORT"))
-	config.Token = os.Getenv("SECURE_ENV_TOKEN")
 	return config
 }
