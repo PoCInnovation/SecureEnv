@@ -1,12 +1,12 @@
 package main
 
 import (
-	"cli/parse_file"
-	"cli/vault_actions"
 	"context"
 	"flag"
 	"fmt"
 	"os"
+	"secureenv/parse_file"
+	"secureenv/vault_actions"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
 )

@@ -1,4 +1,4 @@
-module cli
+module secureenv
 
 go 1.20
 

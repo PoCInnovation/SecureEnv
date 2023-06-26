@@ -1,9 +1,9 @@
 package vault_actions
 
 import (
-	"cli/parse_file"
 	"context"
 	"fmt"
+	"secureenv/parse_file"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
 )
