@@ -53,7 +53,7 @@ func Create_project(mainUrl string) *ffcli.Command {
 			if n := len(args); n != 1 {
 				return fmt.Errorf("create requires 1 arguments, name of the project but you provided %d", n)
 			}
-			Project_create(args[0], mainUrl)
+			project_create(args[0], mainUrl)
 			return nil
 		},
 	}
