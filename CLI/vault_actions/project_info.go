@@ -98,8 +98,6 @@ func Edit_project(mainUrl string) *ffcli.Command {
 
 func Push_project(mainUrl string) *ffcli.Command {
 
-	config := parse_file.Parsefile()
-	bodyjson := parse_file.GetEnvSecrets()
 	pcreate := &ffcli.Command{
 		Name:       "push",
 		ShortUsage: "push",
@@ -109,6 +107,8 @@ func Push_project(mainUrl string) *ffcli.Command {
 			if n := len(args); n != 0 {
 				return fmt.Errorf("push requires 0 arguments but you provided %d", n)
 			}
+			config := parse_file.Parsefile()
+			bodyjson := parse_file.GetEnvSecrets()
 			project_update(config.Project, bodyjson, mainUrl)
 			return nil
 		},
@@ -118,8 +118,6 @@ func Push_project(mainUrl string) *ffcli.Command {
 
 func Pull_project(mainUrl string) *ffcli.Command {
 
-	config := parse_file.Parsefile()
-	bodyjson := secret_get(config.Project, mainUrl)
 	pcreate := &ffcli.Command{
 		Name:       "pull",
 		ShortUsage: "pull",
@@ -129,6 +127,8 @@ func Pull_project(mainUrl string) *ffcli.Command {
 			if n := len(args); n != 0 {
 				return fmt.Errorf("pull requires 0 arguments but you provided %d", n)
 			}
+			config := parse_file.Parsefile()
+			bodyjson := secret_get(config.Project, mainUrl)
 			project_pull(config, bodyjson, mainUrl)
 			return nil
 		},
