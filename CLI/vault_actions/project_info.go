@@ -115,3 +115,23 @@ func Push_project(mainUrl string) *ffcli.Command {
 	}
 	return pcreate
 }
+
+func Pull_project(mainUrl string) *ffcli.Command {
+
+	config := parse_file.Parsefile()
+	bodyjson := secret_get(config.Project, mainUrl)
+	pcreate := &ffcli.Command{
+		Name:       "pull",
+		ShortUsage: "pull",
+		ShortHelp:  "Pull the project specified in the .env file [SECURE_ENV_PROJECT_NAME] from Vault to the .env file",
+		Exec: func(_ context.Context, args []string) error {
+
+			if n := len(args); n != 0 {
+				return fmt.Errorf("pull requires 0 arguments but you provided %d", n)
+			}
+			project_pull(config, bodyjson, mainUrl)
+			return nil
+		},
+	}
+	return pcreate
+}

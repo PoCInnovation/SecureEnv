@@ -2,11 +2,13 @@ package vault_actions
 
 import (
 	"bytes"
+	"cli/parse_file"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 )
 
 func project_list(mainUrl string) {
@@ -160,4 +162,30 @@ func project_update(name string, bodyjson map[string]interface{}, mainUrl string
 	}
 
 	fmt.Print("Project \"", name, "\" updated successfully\n")
+}
+
+func project_pull(config parse_file.Configuration, bodyjson map[string]interface{}, mainUrl string) {
+
+	if err := os.Truncate(".env", 0); err != nil {
+		log.Printf("Failed to truncate: %v", err)
+	}
+
+	f, err := os.Create(".env")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = f.WriteString("SECURE_ENV_PROJECT_NAME=\"" + config.Project + "\"\n")
+	_, err = f.WriteString("SECURE_ENV_TOKEN=\"" + config.Token + "\"\n")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for key, value := range bodyjson {
+		_, err = f.WriteString(key + "=\"" + value.(string) + "\"\n")
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 }

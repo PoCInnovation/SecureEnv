@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func secret_get(name string, mainUrl string) {
+func secret_get(name string, mainUrl string) map[string]interface{} {
 
 	url := mainUrl + "/" + name + "/var"
 
@@ -26,6 +26,7 @@ func secret_get(name string, mainUrl string) {
 	_ = json.Unmarshal(body, &data)
 	prettyJSON, _ := json.MarshalIndent(data, "", "  ")
 	fmt.Println(string(prettyJSON))
+	return data
 }
 
 func Secret_create(name string, key string, value string, mainUrl string) {

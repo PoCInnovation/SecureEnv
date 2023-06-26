@@ -9,6 +9,7 @@ import (
 
 type Configuration struct {
 	Project string
+	Token   string
 }
 
 func Parsefile() Configuration {
@@ -19,5 +20,6 @@ func Parsefile() Configuration {
 		return config
 	}
 	config.Project = os.Getenv("SECURE_ENV_PROJECT_NAME")
+	config.Token = os.Getenv("SECURE_ENV_TOKEN")
 	return config
 }
