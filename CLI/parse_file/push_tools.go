@@ -2,10 +2,6 @@ package parse_file
 
 import (
 	"bufio"
-	"encoding/json"
-	"io/ioutil"
-	"log"
-	"net/http"
 	"os"
 	"strings"
 )
@@ -36,24 +32,6 @@ func create_var(data string) Variable {
 
 func isVariableSecureEnvLocal(variable Variable) bool {
 	return strings.Contains(variable.Key, "SECURE_ENV_")
-}
-
-func getAllSecrets(name string, mainUrl string) map[string]interface{} {
-
-	url := mainUrl + "/" + name + "/var"
-
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	var data map[string]interface{}
-	_ = json.Unmarshal(body, &data)
-	return data
 }
 
 func GetEnvSecrets() map[string]interface{} {

@@ -128,7 +128,7 @@ func Pull_project(mainUrl string) *ffcli.Command {
 				return fmt.Errorf("pull requires 0 arguments but you provided %d", n)
 			}
 			config := parse_file.Parsefile()
-			bodyjson := secret_get(config.Project, mainUrl)
+			bodyjson := Secret_get(config.Project, mainUrl, 0)
 			project_pull(config, bodyjson, mainUrl)
 			return nil
 		},
