@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"secureenv/commands"
 	"secureenv/parse_file"
 	"secureenv/vault_actions"
 
@@ -31,8 +32,9 @@ func main() {
 			vault_actions.Delete_secret(mainUrl),
 			vault_actions.Edit_secret(mainUrl),
 			vault_actions.Get_secret(mainUrl),
+			vault_actions.Pull_project(mainUrl),
 			vault_actions.Push_project(mainUrl),
-			vault_actions.Pull_project(mainUrl)},
+			commands.Status_project(mainUrl)},
 		Exec: func(context.Context, []string) error {
 			return flag.ErrHelp
 		},
