@@ -5,13 +5,42 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
 )
 
+func FindNearestGitDir() (string, error) {
+	currentDir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	for {
+		gitDir := filepath.Join(currentDir, ".git")
+		_, err := os.Stat(gitDir)
+		if err == nil {
+			return gitDir, nil
+		}
+
+		parentDir := filepath.Dir(currentDir)
+		if parentDir == currentDir {
+			break // Root directory reach
+		}
+
+		currentDir = parentDir
+	}
+
+	return "", fmt.Errorf("no .git directory found in any parent directory")
+}
+
 func GetOriginURL() (string, error) {
-	filePath := "../.git/config"
+	gitDir, err := FindNearestGitDir()
+	if err != nil {
+		return "", err
+	}
+	filePath := filepath.Join(gitDir, "config")
 	file, err := os.Open(filePath)
 	if err != nil {
 		return "", err
@@ -60,6 +89,16 @@ func PrintURL() {
 
 	parsedURL := ParseGitHubURL(originURL)
 	fmt.Println("Default project name:", parsedURL)
+}
+
+func Get_URL() (string, error) {
+	originURL, err := GetOriginURL()
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+		return "", err
+	}
+	parsedURL := ParseGitHubURL(originURL)
+	return parsedURL, nil
 }
 
 func Get_Config() *ffcli.Command {
