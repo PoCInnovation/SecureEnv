@@ -34,7 +34,8 @@ func main() {
 			vault_actions.Get_secret(mainUrl),
 			vault_actions.Pull_project(mainUrl),
 			vault_actions.Push_project(mainUrl),
-			commands.Status_project(mainUrl)},
+			commands.Status_project(mainUrl),
+			commands.Clone_project()},
 		Exec: func(context.Context, []string) error {
 			return flag.ErrHelp
 		},

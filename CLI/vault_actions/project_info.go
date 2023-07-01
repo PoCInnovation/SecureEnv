@@ -129,7 +129,7 @@ func Pull_project(mainUrl string) *ffcli.Command {
 			}
 			config := parse_file.Parsefile()
 			bodyjson := Secret_get(config.Project, mainUrl, 0)
-			project_pull(config, bodyjson, mainUrl)
+			Project_pull(config, bodyjson)
 			return nil
 		},
 	}
