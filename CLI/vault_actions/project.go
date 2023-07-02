@@ -136,7 +136,7 @@ func project_edit(name string, value string, mainUrl string) {
 	fmt.Print("Project \"", name, "\" renamed successfully\n")
 }
 
-func project_update(name string, bodyjson map[string]interface{}, mainUrl string) {
+func project_update(name string, bodyjson map[string]interface{}, mainUrl string, forcePush bool) {
 
 	url := mainUrl + "/" + name
 
@@ -144,6 +144,9 @@ func project_update(name string, bodyjson map[string]interface{}, mainUrl string
 
 	req, res := http.NewRequest("PATCH", url, bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
+	if forcePush {
+		req.Header.Set("push-force", "true")
+	}
 	if res != nil {
 		fmt.Println(res)
 		return

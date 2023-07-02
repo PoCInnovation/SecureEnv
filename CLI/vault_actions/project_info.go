@@ -2,6 +2,7 @@ package vault_actions
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"secureenv/parse_file"
 
@@ -98,18 +99,26 @@ func Edit_project(mainUrl string) *ffcli.Command {
 
 func Push_project(mainUrl string) *ffcli.Command {
 
+	fs := flag.NewFlagSet("push", flag.ExitOnError)
+	forceFlag := fs.Bool("f", false, "Force push")
+
 	ppush := &ffcli.Command{
 		Name:       "push",
-		ShortUsage: "push",
-		ShortHelp:  "Push to the project [SECURE_ENV_PROJECT_NAME] all variables written in the .env file execpt SECURE_ENV variables.",
+		ShortUsage: "push [-f]",
+		ShortHelp:  "Push to the project [SECURE_ENV_PROJECT_NAME] all variables written in the .env file except SECURE_ENV variables.",
+		FlagSet:    fs,
 		Exec: func(_ context.Context, args []string) error {
 
-			if n := len(args); n != 0 {
+			if n := len(args); n > 0 {
 				return fmt.Errorf("push requires 0 arguments but you provided %d", n)
 			}
+
+			forcePush := *forceFlag
+
 			config := parse_file.Parsefile()
 			bodyjson := parse_file.GetEnvSecrets()
-			project_update(config.Project, bodyjson, mainUrl)
+
+			project_update(config.Project, bodyjson, mainUrl, forcePush)
 			return nil
 		},
 	}
