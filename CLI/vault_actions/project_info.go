@@ -80,7 +80,7 @@ func Delete_project(mainUrl string) *ffcli.Command {
 
 func Edit_project(mainUrl string) *ffcli.Command {
 
-	pcreate := &ffcli.Command{
+	pedit := &ffcli.Command{
 		Name:       "pedit",
 		ShortUsage: "pedit [<arg> ...]",
 		ShortHelp:  "Rename a project.",
@@ -93,12 +93,12 @@ func Edit_project(mainUrl string) *ffcli.Command {
 			return nil
 		},
 	}
-	return pcreate
+	return pedit
 }
 
 func Push_project(mainUrl string) *ffcli.Command {
 
-	pcreate := &ffcli.Command{
+	ppush := &ffcli.Command{
 		Name:       "push",
 		ShortUsage: "push",
 		ShortHelp:  "Push to the project [SECURE_ENV_PROJECT_NAME] all variables written in the .env file execpt SECURE_ENV variables.",
@@ -113,12 +113,12 @@ func Push_project(mainUrl string) *ffcli.Command {
 			return nil
 		},
 	}
-	return pcreate
+	return ppush
 }
 
 func Pull_project(mainUrl string) *ffcli.Command {
 
-	pcreate := &ffcli.Command{
+	ppull := &ffcli.Command{
 		Name:       "pull",
 		ShortUsage: "pull",
 		ShortHelp:  "Pull the project specified in the .env file [SECURE_ENV_PROJECT_NAME] from Vault to the .env file",
@@ -133,5 +133,5 @@ func Pull_project(mainUrl string) *ffcli.Command {
 			return nil
 		},
 	}
-	return pcreate
+	return ppull
 }
