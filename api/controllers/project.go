@@ -184,14 +184,14 @@ func Get_project(client *vault.Client, projectName string) (string, int) {
 	return string(jsonData), http.StatusOK
 }
 
-func Update_project(client *vault.Client, projectName string, jsonData map[string]interface{}) (string, int) {
+func Update_project(client *vault.Client, projectName string, jsonData map[string]interface{}, forcePush bool) (string, int) {
 	// Check if the project exists and get data from them
 	temp_json, statusCode := List_vars(client, projectName)
 	if statusCode == http.StatusNotFound {
 		return "project not found", statusCode
 	} else if statusCode >= http.StatusBadRequest {
 		return "error", statusCode
-	} else if statusCode == http.StatusNoContent {
+	} else if statusCode == http.StatusNoContent || forcePush {
 		temp_json = "{}"
 	}
 

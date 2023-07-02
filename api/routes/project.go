@@ -96,7 +96,12 @@ func project_update(c *gin.Context) {
 	var newData map[string]interface{}
 	c.ShouldBindJSON(&newData)
 
-	response, statusCode := controllers.Update_project(middlewares.GetClient(c), name_project, newData)
+	forcePush := false
+	pushHeader := c.GetHeader("push-force")
+	if pushHeader == "true" {
+		forcePush = true
+	}
+	response, statusCode := controllers.Update_project(middlewares.GetClient(c), name_project, newData, forcePush)
 	if statusCode >= http.StatusBadRequest {
 		c.JSON(statusCode, gin.H{
 			"error": response,
