@@ -19,8 +19,7 @@ func Clone_project() *ffcli.Command {
 			if n := len(args); n != 1 {
 				return fmt.Errorf("clone requires 1 arguments, api address, but you provided %d", n)
 			}
-			url := args[0] + "/project"
-			_, err := vault_actions.Project_clone(url)
+			_, err := vault_actions.Project_clone(args[0])
 			if err != nil {
 				return err
 			}

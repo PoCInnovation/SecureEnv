@@ -198,13 +198,14 @@ func Project_pull(config parse_file.Configuration, bodyjson map[string]interface
 }
 
 func Project_clone(mainUrl string) (string, error) {
+	apiUrl := mainUrl + "/project"
 	name_project, err := parse_file.Get_URL()
 	if err != nil {
 		fmt.Printf("Error: %s\n", err)
 		return "", err
 	}
 
-	url := mainUrl + "/" + name_project
+	url := apiUrl + "/" + name_project
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Fatalln(err)
@@ -221,7 +222,7 @@ func Project_clone(mainUrl string) (string, error) {
 		return "", fmt.Errorf("default project %s does not exist, please create the project before cloning", name_project)
 	}
 
-	bodyjson := Secret_get(name_project, mainUrl, 0)
+	bodyjson := Secret_get(name_project, apiUrl, 0)
 	if err := os.Truncate(".env", 0); err != nil {
 		log.Printf("Failed to truncate: %v", err)
 	}
@@ -232,6 +233,11 @@ func Project_clone(mainUrl string) (string, error) {
 	}
 
 	_, err = f.WriteString("SECURE_ENV_PROJECT_NAME=\"" + name_project + "\"\n")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = f.WriteString("SECURE_ENV_API=\"" + apiUrl + "\"\n")
 	if err != nil {
 		log.Fatal(err)
 	}
