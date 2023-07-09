@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"secureenv/commands"
+	"secureenv/controller"
 	"secureenv/parse_file"
 	"secureenv/vault_actions"
 
@@ -17,6 +18,11 @@ func main() {
 	rootFlagSet := flag.NewFlagSet("textctl", flag.ExitOnError)
 
 	mainUrl := "http://0.0.0.0:8080/project"
+
+	if err := controller.CheckAPIStatus(mainUrl); err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
 
 	root := &ffcli.Command{
 		ShortUsage: "textctl [flags] <subcommand>",
