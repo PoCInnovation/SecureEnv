@@ -1,0 +1,31 @@
+version: '3'
+services:
+  vault:
+    build: ./vault/
+    restart: always
+    ports:
+      - "8200:8200"
+    volumes:
+      - vault_data:/vault/config/
+      - vault_data:/vault/certs/
+      - vault_data:/vault/data/
+    networks:
+      - back-tier
+
+  api:
+    depends_on:
+      - vault
+    build: ./api/
+    ports:
+      - "8080:8080"
+    restart: always
+    env_file:
+      - ./api/.env
+    networks:
+      - back-tier
+
+networks:
+  back-tier: {}
+
+volumes:
+  vault_data: {}
