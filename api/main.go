@@ -3,8 +3,7 @@ package main
 import (
 	"api/middlewares"
 	"api/routes"
-
-	"github.com/gin-gonic/gin"
+		"github.com/gin-gonic/gin"
 )
 
 func main() {

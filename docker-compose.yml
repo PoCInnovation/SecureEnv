@@ -12,9 +12,18 @@ services:
     networks:
       - back-tier
 
+  db:
+    image: mysql:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=mydatabase
+    ports:
+      - "8100:8100"
+
   api:
     depends_on:
       - vault
+      - db
     build: ./api/
     ports:
       - "8080:8080"
@@ -23,7 +32,6 @@ services:
       - ./api/.env
     networks:
       - back-tier
-
 networks:
   back-tier: {}
 
