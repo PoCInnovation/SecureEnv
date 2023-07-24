@@ -18,7 +18,7 @@ func Get_secret(mainUrl string) *ffcli.Command {
 			if n := len(args); n != 1 {
 				return fmt.Errorf("create requires 1 arguments, name of the project but you provided %d", n)
 			}
-			Secret_get(args[0], mainUrl, 0)
+			Secret_get(args[0], mainUrl, 1)
 			return nil
 		},
 	}

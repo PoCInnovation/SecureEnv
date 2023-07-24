@@ -8,7 +8,7 @@ import (
 	"github.com/peterbourgon/ff/v3/ffcli"
 )
 
-func Clone_project() *ffcli.Command {
+func Clone_project(mainUrl string) *ffcli.Command {
 
 	status := &ffcli.Command{
 		Name:       "clone",
@@ -19,7 +19,7 @@ func Clone_project() *ffcli.Command {
 			if n := len(args); n != 1 {
 				return fmt.Errorf("clone requires 1 arguments, api address, but you provided %d", n)
 			}
-			_, err := vault_actions.Project_clone(args[0])
+			_, err := vault_actions.Project_clone(mainUrl, args[0])
 			if err != nil {
 				return err
 			}
