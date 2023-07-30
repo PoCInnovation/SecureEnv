@@ -19,6 +19,7 @@ func GetClient(c *gin.Context) *vault.Client {
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		getEnvFile()
 		// Auth -> Vault
 
 		config := vault.DefaultConfig()
