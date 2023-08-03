@@ -129,6 +129,10 @@ func project_delete(name string, mainUrl string) {
 	url := mainUrl + "/" + name
 
 	req, res := http.NewRequest("DELETE", url, nil)
+	for key, value := range get_auth_headers() {
+		fmt.Printf("%s: %s\n", key, value)
+		req.Header.Set(key, value)
+	}
 	if res != nil {
 		fmt.Println(res)
 		return
@@ -160,6 +164,10 @@ func project_edit(name string, value string, mainUrl string) {
 
 	req, res := http.NewRequest("PUT", url, bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
+	for key, value := range get_auth_headers() {
+		fmt.Printf("%s: %s\n", key, value)
+		req.Header.Set(key, value)
+	}
 	if res != nil {
 		fmt.Println(res)
 		return
@@ -188,6 +196,10 @@ func project_update(name string, bodyjson map[string]interface{}, mainUrl string
 
 	req, res := http.NewRequest("PATCH", url, bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
+	for key, value := range get_auth_headers() {
+		fmt.Printf("%s: %s\n", key, value)
+		req.Header.Set(key, value)
+	}
 	if forcePush {
 		req.Header.Set("push-force", "true")
 	}
@@ -250,9 +262,20 @@ func Project_clone(mainUrl string) (string, error) {
 	}
 
 	url := apiUrl + "/" + name_project
-	resp, err := http.Get(url)
+	req, res := http.NewRequest("GET", url, nil)
+	for key, value := range get_auth_headers() {
+		fmt.Printf("%s: %s\n", key, value)
+		req.Header.Set(key, value)
+	}
+	if res != nil {
+		fmt.Println(res)
+		return "", res
+	}
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println(err)
+		return "", err
 	}
 	defer resp.Body.Close()
 
