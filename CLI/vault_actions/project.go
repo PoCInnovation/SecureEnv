@@ -11,13 +11,44 @@ import (
 	"secureenv/parse_file"
 )
 
+func get_auth_headers() map[string]string {
+
+	auth_headers := make(map[string]string)
+
+	val, present := os.LookupEnv("SECURE_ENV_AUTH_ROOT_TOKEN")
+	fmt.Printf("%s = %t", val, present)
+	if val, present := os.LookupEnv("SECURE_ENV_AUTH_GITHUB_TOKEN"); present == true {
+		auth_headers["X-auth-type"] = "GitHub"
+		auth_headers["X-auth-github-token"] = val
+	} else if val, present := os.LookupEnv("SECURE_ENV_AUTH_JWT_TOKEN"); present == true {
+		auth_headers["X-auth-type"] = "JWT"
+		auth_headers["X-auth-jwt-token"] = val
+	} else if val, present := os.LookupEnv("SECURE_ENV_AUTH_ROOT_TOKEN"); present == true {
+		auth_headers["X-auth-type"] = "root-token"
+		auth_headers["X-auth-root-token"] = val
+	}
+
+	return auth_headers
+}
+
 func project_list(mainUrl string) {
 
 	url := mainUrl + "/"
 
-	resp, err := http.Get(url)
+	req, res := http.NewRequest("GET", url, nil)
+	for key, value := range get_auth_headers() {
+		fmt.Printf("%s: %s\n", key, value)
+		req.Header.Set(key, value)
+	}
+	if res != nil {
+		fmt.Println(res)
+		return
+	}
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println(err)
+		return
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -34,10 +65,22 @@ func project_get(name string, mainUrl string) {
 
 	url := mainUrl + "/" + name
 
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Fatalln(err)
+	req, res := http.NewRequest("GET", url, nil)
+	for key, value := range get_auth_headers() {
+		fmt.Printf("%s: %s\n", key, value)
+		req.Header.Set(key, value)
 	}
+	if res != nil {
+		fmt.Println(res)
+		return
+	}
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatalln(err)
@@ -60,6 +103,7 @@ func project_create(name string, mainUrl string) {
 
 	req, res := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
+
 	if res != nil {
 		fmt.Println(res)
 		return

@@ -21,9 +21,20 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Auth -> Vault
 
+		for name, values := range c.Request.Header {
+			fmt.Printf("%s: %s\n", name, values)
+		}
+
+		client_token := ""
+		auth_type := c.GetHeader("X-auth-type")
+
+		if auth_type == "root-token" {
+			client_token = c.GetHeader("X-auth-root-token")
+		}
+
 		config := vault.DefaultConfig()
 
-		config.Address = adr_vault
+		config.Address = "https://secure-env.poc-innovation.com:8200/"
 
 		client, err := vault.NewClient(config)
 		if err != nil {
@@ -31,23 +42,8 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "client auth"})
 			return
 		}
-
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing"})
-			c.Abort()
-			return
-		}
-
-		var token string
-		_, err = fmt.Sscanf(authHeader, "Bearer %s", &token)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
-			c.Abort()
-			return
-		}
-
-		client.SetToken(token)
+		fmt.Printf(client_token)
+		client.SetToken(client_token)
 
 		c.Set("vaultClient", client)
 
