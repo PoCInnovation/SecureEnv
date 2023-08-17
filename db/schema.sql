@@ -1,0 +1,7 @@
+CREATE TABLE Log (
+    id SERIAL PRIMARY KEY,
+    client_ip INET NOT NULL,
+    time TIMESTAMP NOT NULL,
+    action VARCHAR(255) NOT NULL,
+    project VARCHAR(255) NOT NULL
+);
