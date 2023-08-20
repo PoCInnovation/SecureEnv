@@ -166,7 +166,7 @@ func Push_project(mainUrl string) *ffcli.Command {
 			config := parse_file.Parsefile()
 			bodyjson := parse_file.GetEnvSecrets()
 			bodyjson_server := Secret_get(config.Project, mainUrl, 0)
-			if isPushAllowed(bodyjson, bodyjson_server, config.Project) == false {
+			if isPushAllowed(bodyjson, bodyjson_server, config.Project) == false && forcePush == false {
 				return fmt.Errorf("Push impossible")
 			}
 
