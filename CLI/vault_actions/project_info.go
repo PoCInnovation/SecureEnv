@@ -97,6 +97,54 @@ func Edit_project(mainUrl string) *ffcli.Command {
 	return pedit
 }
 
+// ******************** Functions to check if push is allowed
+
+func is_sync(bodyjson_local map[string]interface{}, bodyjson_server map[string]interface{}) int {
+	if len(bodyjson_local) != len(bodyjson_server) {
+		return 1
+	}
+
+	for key, value := range bodyjson_local {
+		serverValue, exists := bodyjson_server[key]
+		if !exists || value != serverValue {
+			return 1
+		}
+	}
+
+	return 0
+}
+
+func isPushAllowed(bodyjson_local map[string]interface{}, bodyjson_server map[string]interface{}, name_project string) bool {
+	result := true
+	if is_sync(bodyjson_local, bodyjson_server) != 0 {
+		fmt.Printf("Your project is not up to date with %s\n", name_project)
+	}
+	red := "\033[31m"
+	// green := "\033[32m"
+	reset := "\033[0m"
+
+	// for key, value := range bodyjson_local {
+	// 	serverValue, exists := bodyjson_server[key]
+	// 	if !exists {
+	// 		fmt.Printf("\t%s%s%s %s\n", green, "add\t : ", reset, key)
+	// 	} else if value != serverValue {
+	// 		fmt.Printf("\t%s%s%s %s\n", green, "modified : ", reset, key)
+	// 	}
+	// }
+
+	for key := range bodyjson_server {
+		_, exists := bodyjson_local[key]
+		if !exists {
+			fmt.Printf("\t%s%s%s %s\n", red, "rm\t : ", reset, key)
+			result = false
+		}
+	}
+
+	return result
+}
+
+// ******************** END - Functions to check if push is allowed
+
 func Push_project(mainUrl string) *ffcli.Command {
 
 	fs := flag.NewFlagSet("push", flag.ExitOnError)
@@ -117,8 +165,13 @@ func Push_project(mainUrl string) *ffcli.Command {
 
 			config := parse_file.Parsefile()
 			bodyjson := parse_file.GetEnvSecrets()
+			bodyjson_server := Secret_get(config.Project, mainUrl, 0)
+			if isPushAllowed(bodyjson, bodyjson_server, config.Project) == false {
+				return fmt.Errorf("Push impossible")
+			}
 
 			project_update(config.Project, bodyjson, mainUrl, forcePush)
+
 			return nil
 		},
 	}
