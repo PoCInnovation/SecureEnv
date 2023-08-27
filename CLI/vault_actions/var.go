@@ -25,6 +25,7 @@ func Secret_get(name string, mainUrl string, printable int) map[string]interface
 	var data map[string]interface{}
 	_ = json.Unmarshal(body, &data)
 	prettyJSON, _ := json.MarshalIndent(data, "", "  ")
+
 	if printable == 1 {
 		fmt.Println(string(prettyJSON))
 	}
