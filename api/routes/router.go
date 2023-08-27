@@ -1,11 +1,14 @@
 package routes
 
 import (
+	"database/sql"
 	"github.com/gin-gonic/gin"
 )
 
-func ApplyRoutes(router *gin.Engine) {
-	router.GET("/project/", project_list)
+func ApplyRoutes(router *gin.Engine, db *sql.DB) {
+	router.GET("/project/", func(c *gin.Context) {
+		project_list(c, db)
+	})
 	router.POST("/project/", project_create)
 	router.PUT("/project/:project/", project_edit)
 	router.DELETE("/project/:project/", project_del)

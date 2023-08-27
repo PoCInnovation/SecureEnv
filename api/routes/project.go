@@ -4,13 +4,14 @@ import (
 	"api/controllers"
 	"api/middlewares"
 	data "api/models"
+	"database/sql"
 	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func project_list(c *gin.Context) {
+func project_list(c *gin.Context, db *sql.DB) {
 	response, statusCode := controllers.List_projects(middlewares.GetClient(c))
 	if statusCode >= http.StatusBadRequest {
 		c.JSON(statusCode, gin.H{
@@ -18,6 +19,8 @@ func project_list(c *gin.Context) {
 		})
 		return
 	}
+
+	db.Exec("INSERT INTO projects (name) VALUES (?)", response)
 
 	var data map[string]interface{}
 	_ = json.Unmarshal([]byte(response), &data)
