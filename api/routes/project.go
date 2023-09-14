@@ -33,6 +33,13 @@ func project_create(c *gin.Context, db *sql.DB) {
 	ip_adress := c.Request.Header.Get("X-Forwarded-For")
 	action_description := ip_adress + ": Created project " + myVar.Value
 
+	response, statusCode := controllers.Create_project(middlewares.GetClient(c), myVar.Value)
+	if statusCode >= http.StatusBadRequest {
+		c.JSON(statusCode, gin.H{
+			"error": response,
+		})
+		return
+	}
 	_, err := db.Exec("INSERT INTO projects (name) VALUES (?)", myVar.Value)
 	if err != nil {
 		println(err.Error())
@@ -55,14 +62,6 @@ func project_create(c *gin.Context, db *sql.DB) {
 		return
 	}
 
-	response, statusCode := controllers.Create_project(middlewares.GetClient(c), myVar.Value)
-	if statusCode >= http.StatusBadRequest {
-		c.JSON(statusCode, gin.H{
-			"error": response,
-		})
-		return
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"message": response,
 	})
@@ -73,8 +72,15 @@ func project_edit(c *gin.Context, db *sql.DB) {
 	var myVar data.Vardata
 	c.ShouldBindJSON(&myVar)
 	ip_adress := c.ClientIP()
-	action_description := ip_adress + ": Edited project " + name_project
+	action_description := ip_adress + ": Edited project " + name_project + " to " + myVar.Value
 
+	response, statusCode := controllers.Edit_project(middlewares.GetClient(c), name_project, myVar.Value)
+	if statusCode >= http.StatusBadRequest {
+		c.JSON(statusCode, gin.H{
+			"error": response,
+		})
+		return
+	}
 	var project_id int
 	err := db.QueryRow("SELECT id FROM projects WHERE name = ?", name_project).Scan(&project_id)
 	if err != nil {
@@ -93,14 +99,6 @@ func project_edit(c *gin.Context, db *sql.DB) {
 		return
 	}
 
-	response, statusCode := controllers.Edit_project(middlewares.GetClient(c), name_project, myVar.Value)
-	if statusCode >= http.StatusBadRequest {
-		c.JSON(statusCode, gin.H{
-			"error": response,
-		})
-		return
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"message": response,
 	})
@@ -111,6 +109,13 @@ func project_del(c *gin.Context, db *sql.DB) {
 	ip_adress := c.ClientIP()
 	action_description := ip_adress + ": Deleted project " + name_project
 
+	response, statusCode := controllers.Del_project(middlewares.GetClient(c), name_project)
+	if statusCode >= http.StatusBadRequest {
+		c.JSON(statusCode, gin.H{
+			"error": response,
+		})
+		return
+	}
 	var project_id int
 	err := db.QueryRow("SELECT id FROM projects WHERE name = ?", name_project).Scan(&project_id)
 	if err != nil {
@@ -126,14 +131,6 @@ func project_del(c *gin.Context, db *sql.DB) {
 	_, err = db.Exec("DELETE FROM projects WHERE name = ?", name_project)
 	if err != nil {
 		println(err.Error())
-		return
-	}
-
-	response, statusCode := controllers.Del_project(middlewares.GetClient(c), name_project)
-	if statusCode >= http.StatusBadRequest {
-		c.JSON(statusCode, gin.H{
-			"error": response,
-		})
 		return
 	}
 
@@ -158,10 +155,13 @@ func project_get(c *gin.Context) {
 	c.JSON(http.StatusOK, data)
 }
 
-func project_update(c *gin.Context) {
+func project_update(c *gin.Context, db *sql.DB) {
 	name_project := c.Param("project")
 	var newData map[string]interface{}
 	c.ShouldBindJSON(&newData)
+
+	ip_adress := c.ClientIP()
+	action_description := ip_adress + ": Updated project " + name_project
 
 	forcePush := false
 	pushHeader := c.GetHeader("push-force")
@@ -173,6 +173,18 @@ func project_update(c *gin.Context) {
 		c.JSON(statusCode, gin.H{
 			"error": response,
 		})
+		return
+	}
+	var project_id int
+	err := db.QueryRow("SELECT id FROM projects WHERE name = ?", name_project).Scan(&project_id)
+	if err != nil {
+		println(err.Error())
+		return
+	}
+
+	_, err = db.Exec("INSERT INTO logs (ip_adress, action, project_id) VALUES (?, ?, ?)", ip_adress, action_description, project_id)
+	if err != nil {
+		println(err.Error())
 		return
 	}
 

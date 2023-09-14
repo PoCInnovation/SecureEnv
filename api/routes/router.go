@@ -19,7 +19,9 @@ func ApplyRoutes(router *gin.Engine, db *sql.DB) {
 		project_del(c, db)
 	})
 	router.GET("/project/:project/", project_get)
-	router.PATCH("/project/:project/", project_update)
+	router.PATCH("/project/:project/", func(c *gin.Context) {
+		project_update(c, db)
+	})
 	router.GET("/project/:project/var/", var_list)
 	router.POST("/project/:project/var/:variable", func(c *gin.Context) {
 		var_add(c, db)
