@@ -47,7 +47,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// 	return
 		// }
 
-		client.SetToken("hvs.NWAqB95aaCepzz7GXVrO43KW")
+		client.SetToken("hvs.cV0J7Sl7bDMSVmAG1TSbxjFm")
 
 		c.Set("vaultClient", client)
 

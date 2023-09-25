@@ -14,8 +14,8 @@ func main() {
 		panic(err.Error())
 	}
 	defer db.Close()
-
 	fmt.Println("connected to database")
+
 	router := gin.Default()
 	router.Use(middlewares.CorsMiddleware())
 	router.Use(middlewares.AuthMiddleware())

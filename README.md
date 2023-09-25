@@ -12,11 +12,29 @@ COMING SOON
 
 ### Installation
 
-COMING SOON
+Clone the repository:
+
+```bash
+git git@github.com:PoCInnovation/SecureEnv.git
+```
+
+Go to the CLI folder and build secureenv:
+
+```bash
+cd CLI/
+```
+```bash
+go build secureenv
+```
+
+To use it everywhere:
+```bash
+sudo cp secureenv /usr/local/bin/
+```
 
 ### Quickstart
 
-COMING SOON
+In your usual `.env` file set the `SECURE_ENV_TOKEN` and `SECURE_ENV_HOST` like in the `.env.example`.
 
 ### Usage
 
