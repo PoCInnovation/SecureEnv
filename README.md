@@ -39,37 +39,37 @@ In your usual `.env` file set the `SECURE_ENV_TOKEN` and `SECURE_ENV_HOST` like 
 ### Usage
 
 ```bash 
-./secureenv clone `project_name` : Clone the project with name value
+./secureenv clone `project_name` // Clone the project with name value
 ```
 ```bash
-./secureenv create `project_name` : Create the project with name value
+./secureenv create `project_name` // Create the project with name value
 ```
 ```bash
-./secureenv delete `project_name` : Delete the project with name value
+./secureenv delete `project_name` // Delete the project with name value
 ```
 ```bash
-./secureenv list : List all the projects
+./secureenv list // List all the projects
 ```
 ```bash
-./secureenv list `project_name` : List all the secrets of the project with name value
+./secureenv list `project_name` // List all the secrets of the project with name value
 ```
 ```bash
-./secureenv get `project_name` `secret_name` : Get the secret with name value of the project with name value
+./secureenv get `project_name` `secret_name` // Get the secret with name value of the project with name value
 ```
 ```bash
-./secureenv set `project_name` `secret_name` `secret_value` : Set the secret with name value of the project with name value
+./secureenv set `project_name` `secret_name` `secret_value` // Set the secret with name value of the project with name value
 ```
 ```bash
-./secureenv update `project_name` `secret_name` `secret_value` : Update the secret with name value of the project with name value
+./secureenv update `project_name` `secret_name` `secret_value` // Update the secret with name value of the project with name value
 ```
 ```bash
-./secureenv delete `project_name` `secret_name` : Delete the secret with name value of the project with name value
+./secureenv delete `project_name` `secret_name` // Delete the secret with name value of the project with name value
 ```
 ```bash
-./secureenv -h : Display the header
+./secureenv -h // Display the header
 ```
 ```bash
-./secureenv status : Display the status of the vault
+./secureenv status // Display the status of the vault
 ```
 
 
