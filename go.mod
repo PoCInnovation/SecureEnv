@@ -2,7 +2,7 @@ module github.com/PoCInnovation/SecureEnv
 
 go 1.26.0
 
-toolchain go1.26.8
+toolchain go1.27.1
 
 require github.com/hashicorp/vault/api v1.23.0
 
@@ -23,5 +23,5 @@ require (
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
-	golang.org/x/time v0.12.0 // indirect
+	golang.org/x/time v0.16.0 // indirect
 )
