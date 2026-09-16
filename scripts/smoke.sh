@@ -7,7 +7,9 @@
 # is deleted at the end.
 set -eu
 
-bin="$1"
+# Resolve the binary before changing directory, so relative paths work.
+bin="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
+[ -x "$bin" ] || { echo "smoke: $1 is not an executable" >&2; exit 1; }
 export SECURE_ENV_API_URL="$2"
 : "${SECURE_ENV_TOKEN:?SECURE_ENV_TOKEN must be set}"
 
