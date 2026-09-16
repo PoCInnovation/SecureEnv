@@ -187,7 +187,7 @@ func TestReplaceVariables(t *testing.T) {
 		svc, store := newService(t)
 		store.seed("app", map[string]string{}, map[string]string{"A": "1"})
 
-		if _, err := svc.ReplaceVariables(ctx, "app", map[string]string{"B": "2"}, project.AnyVersion); err != nil {
+		if _, err := svc.ReplaceVariables(ctx, "app", map[string]string{"B": "2"}, domain.AnyVersion); err != nil {
 			t.Fatalf("error: %v", err)
 		}
 	})
@@ -196,7 +196,7 @@ func TestReplaceVariables(t *testing.T) {
 		t.Parallel()
 		svc, _ := newService(t)
 
-		_, err := svc.ReplaceVariables(ctx, "ghost", map[string]string{}, project.AnyVersion)
+		_, err := svc.ReplaceVariables(ctx, "ghost", map[string]string{}, domain.AnyVersion)
 		if !errors.Is(err, domain.ErrProjectNotFound) {
 			t.Fatalf("error = %v, want ErrProjectNotFound", err)
 		}
@@ -207,7 +207,7 @@ func TestReplaceVariables(t *testing.T) {
 		svc, store := newService(t)
 		store.seed("app", map[string]string{})
 
-		_, err := svc.ReplaceVariables(ctx, "app", map[string]string{"SECURE_ENV_X": "1"}, project.AnyVersion)
+		_, err := svc.ReplaceVariables(ctx, "app", map[string]string{"SECURE_ENV_X": "1"}, domain.AnyVersion)
 		if !errors.Is(err, domain.ErrReservedVariableKey) {
 			t.Fatalf("error = %v, want ErrReservedVariableKey", err)
 		}

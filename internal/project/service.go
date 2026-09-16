@@ -9,9 +9,6 @@ import (
 	"github.com/PoCInnovation/SecureEnv/internal/domain"
 )
 
-// AnyVersion disables the optimistic concurrency check of ReplaceVariables.
-const AnyVersion domain.Version = -1
-
 // maxAttempts bounds the read-modify-write retries of single variable updates.
 const maxAttempts = 3
 
@@ -141,7 +138,7 @@ func (s *Service) DeleteVariable(ctx context.Context, rawName, key string) (doma
 }
 
 // ReplaceVariables overwrites every variable of a project. When expected is
-// not AnyVersion the write fails with domain.ErrVersionConflict if the project
+// not domain.AnyVersion the write fails with domain.ErrVersionConflict if the project
 // changed since that version.
 func (s *Service) ReplaceVariables(ctx context.Context, rawName string, raw map[string]string, expected domain.Version) (domain.Version, error) {
 	name, err := domain.NewProjectName(rawName)
@@ -152,7 +149,7 @@ func (s *Service) ReplaceVariables(ctx context.Context, rawName string, raw map[
 	if err != nil {
 		return 0, err
 	}
-	if expected == AnyVersion {
+	if expected == domain.AnyVersion {
 		current, err := s.store.Read(ctx, name)
 		if err != nil {
 			return 0, err

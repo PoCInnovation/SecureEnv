@@ -29,6 +29,9 @@ type Version int
 // exist yet.
 const NoVersion Version = 0
 
+// AnyVersion disables the check-and-set comparison of a write.
+const AnyVersion Version = -1
+
 // Snapshot is the set of variables of a project at a given version.
 type Snapshot struct {
 	Version   Version
