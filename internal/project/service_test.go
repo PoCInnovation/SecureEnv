@@ -8,11 +8,12 @@ import (
 
 	"github.com/PoCInnovation/SecureEnv/internal/domain"
 	"github.com/PoCInnovation/SecureEnv/internal/project"
+	"github.com/PoCInnovation/SecureEnv/internal/project/projecttest"
 )
 
-func newService(t *testing.T) (*project.Service, *memStore) {
+func newService(t *testing.T) (*project.Service, *projecttest.MemStore) {
 	t.Helper()
-	store := newMemStore()
+	store := projecttest.NewMemStore()
 	return project.NewService(store), store
 }
 
@@ -24,7 +25,7 @@ func TestCreate(t *testing.T) {
 	if err := svc.Create(ctx, "backend"); err != nil {
 		t.Fatalf("Create() error: %v", err)
 	}
-	if !store.has("backend") {
+	if !store.Has("backend") {
 		t.Fatal("project was not stored")
 	}
 	if err := svc.Create(ctx, "backend"); !errors.Is(err, domain.ErrProjectExists) {
@@ -38,8 +39,8 @@ func TestCreate(t *testing.T) {
 func TestList(t *testing.T) {
 	t.Parallel()
 	svc, store := newService(t)
-	store.seed("b", map[string]string{})
-	store.seed("a", map[string]string{})
+	store.Seed("b", map[string]string{})
+	store.Seed("a", map[string]string{})
 
 	names, err := svc.List(t.Context())
 	if err != nil {
@@ -58,7 +59,7 @@ func TestSetVariable(t *testing.T) {
 	t.Parallel()
 	ctx := t.Context()
 	svc, store := newService(t)
-	store.seed("app", map[string]string{"KEEP": "1"})
+	store.Seed("app", map[string]string{"KEEP": "1"})
 
 	version, err := svc.SetVariable(ctx, "app", "NEW", "2")
 	if err != nil {
@@ -67,7 +68,7 @@ func TestSetVariable(t *testing.T) {
 	if version != 2 {
 		t.Errorf("version = %d, want 2", version)
 	}
-	if got := store.latest("app"); !maps.Equal(got, map[string]string{"KEEP": "1", "NEW": "2"}) {
+	if got := store.Latest("app"); !maps.Equal(got, map[string]string{"KEEP": "1", "NEW": "2"}) {
 		t.Fatalf("stored = %v", got)
 	}
 }
@@ -76,7 +77,7 @@ func TestSetVariableValidation(t *testing.T) {
 	t.Parallel()
 	ctx := t.Context()
 	svc, store := newService(t)
-	store.seed("app", map[string]string{})
+	store.Seed("app", map[string]string{})
 
 	if _, err := svc.SetVariable(ctx, "missing", "A", "1"); !errors.Is(err, domain.ErrProjectNotFound) {
 		t.Errorf("unknown project error = %v", err)
@@ -93,24 +94,24 @@ func TestSetVariableRetriesOnConcurrentWrite(t *testing.T) {
 	t.Parallel()
 	ctx := t.Context()
 	svc, store := newService(t)
-	store.seed("app", map[string]string{})
+	store.Seed("app", map[string]string{})
 
 	// Another client writes between our read and our write.
-	store.beforeWrite = func() { store.seed("app", map[string]string{"OTHER": "x"}) }
+	store.BeforeNextWrite(func() { store.Seed("app", map[string]string{"OTHER": "x"}) })
 
 	if _, err := svc.SetVariable(ctx, "app", "MINE", "y"); err != nil {
 		t.Fatalf("SetVariable() error: %v", err)
 	}
-	if got := store.latest("app"); !maps.Equal(got, map[string]string{"OTHER": "x", "MINE": "y"}) {
+	if got := store.Latest("app"); !maps.Equal(got, map[string]string{"OTHER": "x", "MINE": "y"}) {
 		t.Fatalf("concurrent change was lost: %v", got)
 	}
 }
 
 func TestSetVariableGivesUpAfterRepeatedConflicts(t *testing.T) {
 	t.Parallel()
-	store := newMemStore()
-	store.seed("app", map[string]string{})
-	store.failures["app"] = writeFailure{err: domain.ErrVersionConflict}
+	store := projecttest.NewMemStore()
+	store.Seed("app", map[string]string{})
+	store.FailWrites("app", projecttest.WriteFailure{Err: domain.ErrVersionConflict})
 	svc := project.NewService(store)
 
 	if _, err := svc.SetVariable(t.Context(), "app", "A", "1"); !errors.Is(err, domain.ErrVersionConflict) {
@@ -122,7 +123,7 @@ func TestVariable(t *testing.T) {
 	t.Parallel()
 	ctx := t.Context()
 	svc, store := newService(t)
-	store.seed("app", map[string]string{"A": "1"})
+	store.Seed("app", map[string]string{"A": "1"})
 
 	value, err := svc.Variable(ctx, "app", "A")
 	if err != nil || value != "1" {
@@ -137,12 +138,12 @@ func TestDeleteVariable(t *testing.T) {
 	t.Parallel()
 	ctx := t.Context()
 	svc, store := newService(t)
-	store.seed("app", map[string]string{"A": "1", "B": "2"})
+	store.Seed("app", map[string]string{"A": "1", "B": "2"})
 
 	if _, err := svc.DeleteVariable(ctx, "app", "A"); err != nil {
 		t.Fatalf("DeleteVariable() error: %v", err)
 	}
-	if got := store.latest("app"); !maps.Equal(got, map[string]string{"B": "2"}) {
+	if got := store.Latest("app"); !maps.Equal(got, map[string]string{"B": "2"}) {
 		t.Fatalf("stored = %v", got)
 	}
 	if _, err := svc.DeleteVariable(ctx, "app", "A"); !errors.Is(err, domain.ErrVariableNotFound) {
@@ -157,7 +158,7 @@ func TestReplaceVariables(t *testing.T) {
 	t.Run("with expected version", func(t *testing.T) {
 		t.Parallel()
 		svc, store := newService(t)
-		store.seed("app", map[string]string{"OLD": "1"})
+		store.Seed("app", map[string]string{"OLD": "1"})
 
 		version, err := svc.ReplaceVariables(ctx, "app", map[string]string{"NEW": "2"}, 1)
 		if err != nil {
@@ -166,7 +167,7 @@ func TestReplaceVariables(t *testing.T) {
 		if version != 2 {
 			t.Errorf("version = %d, want 2", version)
 		}
-		if got := store.latest("app"); !maps.Equal(got, map[string]string{"NEW": "2"}) {
+		if got := store.Latest("app"); !maps.Equal(got, map[string]string{"NEW": "2"}) {
 			t.Fatalf("stored = %v", got)
 		}
 	})
@@ -174,7 +175,7 @@ func TestReplaceVariables(t *testing.T) {
 	t.Run("stale version is rejected", func(t *testing.T) {
 		t.Parallel()
 		svc, store := newService(t)
-		store.seed("app", map[string]string{}, map[string]string{"A": "1"})
+		store.Seed("app", map[string]string{}, map[string]string{"A": "1"})
 
 		_, err := svc.ReplaceVariables(ctx, "app", map[string]string{}, 1)
 		if !errors.Is(err, domain.ErrVersionConflict) {
@@ -185,7 +186,7 @@ func TestReplaceVariables(t *testing.T) {
 	t.Run("any version", func(t *testing.T) {
 		t.Parallel()
 		svc, store := newService(t)
-		store.seed("app", map[string]string{}, map[string]string{"A": "1"})
+		store.Seed("app", map[string]string{}, map[string]string{"A": "1"})
 
 		if _, err := svc.ReplaceVariables(ctx, "app", map[string]string{"B": "2"}, domain.AnyVersion); err != nil {
 			t.Fatalf("error: %v", err)
@@ -205,7 +206,7 @@ func TestReplaceVariables(t *testing.T) {
 	t.Run("invalid keys", func(t *testing.T) {
 		t.Parallel()
 		svc, store := newService(t)
-		store.seed("app", map[string]string{})
+		store.Seed("app", map[string]string{})
 
 		_, err := svc.ReplaceVariables(ctx, "app", map[string]string{"SECURE_ENV_X": "1"}, domain.AnyVersion)
 		if !errors.Is(err, domain.ErrReservedVariableKey) {
@@ -221,12 +222,12 @@ func TestRename(t *testing.T) {
 	t.Run("copies the whole history", func(t *testing.T) {
 		t.Parallel()
 		svc, store := newService(t)
-		store.seed("old", map[string]string{}, map[string]string{"A": "1"}, map[string]string{"A": "2"})
+		store.Seed("old", map[string]string{}, map[string]string{"A": "1"}, map[string]string{"A": "2"})
 
 		if err := svc.Rename(ctx, "old", "new"); err != nil {
 			t.Fatalf("Rename() error: %v", err)
 		}
-		if store.has("old") {
+		if store.Has("old") {
 			t.Error("old project still exists")
 		}
 		history, err := store.History(ctx, mustName(t, "new"))
@@ -236,7 +237,7 @@ func TestRename(t *testing.T) {
 		if len(history) != 3 {
 			t.Fatalf("history length = %d, want 3", len(history))
 		}
-		if got := store.latest("new"); !maps.Equal(got, map[string]string{"A": "2"}) {
+		if got := store.Latest("new"); !maps.Equal(got, map[string]string{"A": "2"}) {
 			t.Fatalf("latest = %v", got)
 		}
 	})
@@ -244,13 +245,13 @@ func TestRename(t *testing.T) {
 	t.Run("target already exists", func(t *testing.T) {
 		t.Parallel()
 		svc, store := newService(t)
-		store.seed("old", map[string]string{"A": "1"})
-		store.seed("taken", map[string]string{"B": "2"})
+		store.Seed("old", map[string]string{"A": "1"})
+		store.Seed("taken", map[string]string{"B": "2"})
 
 		if err := svc.Rename(ctx, "old", "taken"); !errors.Is(err, domain.ErrProjectExists) {
 			t.Fatalf("error = %v, want ErrProjectExists", err)
 		}
-		if !store.has("old") || !maps.Equal(store.latest("taken"), map[string]string{"B": "2"}) {
+		if !store.Has("old") || !maps.Equal(store.Latest("taken"), map[string]string{"B": "2"}) {
 			t.Fatal("projects must be left untouched")
 		}
 	})
@@ -258,18 +259,18 @@ func TestRename(t *testing.T) {
 	t.Run("partial copy is rolled back", func(t *testing.T) {
 		t.Parallel()
 		svc, store := newService(t)
-		store.seed("old", map[string]string{"A": "1"}, map[string]string{"A": "2"})
+		store.Seed("old", map[string]string{"A": "1"}, map[string]string{"A": "2"})
 
 		boom := errors.New("vault unavailable")
-		store.failures["new"] = writeFailure{after: 1, err: boom}
+		store.FailWrites("new", projecttest.WriteFailure{After: 1, Err: boom})
 
 		if err := svc.Rename(ctx, "old", "new"); !errors.Is(err, boom) {
 			t.Fatalf("error = %v, want %v", err, boom)
 		}
-		if store.has("new") {
+		if store.Has("new") {
 			t.Error("partially copied project was not removed")
 		}
-		if !store.has("old") {
+		if !store.Has("old") {
 			t.Error("source project must be kept on failure")
 		}
 	})
@@ -277,7 +278,7 @@ func TestRename(t *testing.T) {
 	t.Run("same name", func(t *testing.T) {
 		t.Parallel()
 		svc, store := newService(t)
-		store.seed("app", map[string]string{})
+		store.Seed("app", map[string]string{})
 
 		if err := svc.Rename(ctx, "app", "app"); !errors.Is(err, domain.ErrProjectExists) {
 			t.Fatalf("error = %v, want ErrProjectExists", err)
@@ -289,7 +290,7 @@ func TestDelete(t *testing.T) {
 	t.Parallel()
 	ctx := t.Context()
 	svc, store := newService(t)
-	store.seed("app", map[string]string{})
+	store.Seed("app", map[string]string{})
 
 	if err := svc.Delete(ctx, "app"); err != nil {
 		t.Fatalf("Delete() error: %v", err)
@@ -303,7 +304,7 @@ func TestInfoAndVariables(t *testing.T) {
 	t.Parallel()
 	ctx := t.Context()
 	svc, store := newService(t)
-	store.seed("app", map[string]string{}, map[string]string{"A": "1"})
+	store.Seed("app", map[string]string{}, map[string]string{"A": "1"})
 
 	info, err := svc.Info(ctx, "app")
 	if err != nil || info.CurrentVersion != 2 {

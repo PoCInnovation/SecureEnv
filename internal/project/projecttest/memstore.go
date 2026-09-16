@@ -1,7 +1,9 @@
-package project_test
+// Package projecttest provides test helpers for code built on project.Store.
+package projecttest
 
 import (
 	"context"
+	"fmt"
 	"maps"
 	"slices"
 	"sync"
@@ -9,28 +11,29 @@ import (
 	"github.com/PoCInnovation/SecureEnv/internal/domain"
 )
 
-// memStore is an in-memory project.Store that mimics Vault KV v2 versioning
-// and check-and-set semantics.
-type writeFailure struct {
-	after int
-	err   error
+// MemStore is an in-memory project.Store that mimics Vault KV v2 versioning
+// and check-and-set semantics. It is safe for concurrent use.
+// WriteFailure makes writes to a project fail with Err once After writes
+// succeeded.
+type WriteFailure struct {
+	After int
+	Err   error
 }
 
-type memStore struct {
+type MemStore struct {
 	mu       sync.Mutex
 	projects map[string][]domain.Variables
 
-	// failures makes Write fail for a project once it accepted `after` writes.
-	failures map[string]writeFailure
-	// beforeWrite runs once, right before the next write is applied.
+	failures    map[string]WriteFailure
 	beforeWrite func()
 }
 
-func newMemStore() *memStore {
-	return &memStore{projects: map[string][]domain.Variables{}, failures: map[string]writeFailure{}}
+// NewMemStore returns an empty store.
+func NewMemStore() *MemStore {
+	return &MemStore{projects: map[string][]domain.Variables{}, failures: map[string]WriteFailure{}}
 }
 
-func (s *memStore) List(context.Context) ([]domain.ProjectName, error) {
+func (s *MemStore) List(context.Context) ([]domain.ProjectName, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -42,7 +45,7 @@ func (s *memStore) List(context.Context) ([]domain.ProjectName, error) {
 	return names, nil
 }
 
-func (s *memStore) Info(_ context.Context, name domain.ProjectName) (domain.ProjectInfo, error) {
+func (s *MemStore) Info(_ context.Context, name domain.ProjectName) (domain.ProjectInfo, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -53,7 +56,7 @@ func (s *memStore) Info(_ context.Context, name domain.ProjectName) (domain.Proj
 	return domain.ProjectInfo{Name: name, CurrentVersion: domain.Version(len(versions))}, nil
 }
 
-func (s *memStore) Read(_ context.Context, name domain.ProjectName) (domain.Snapshot, error) {
+func (s *MemStore) Read(_ context.Context, name domain.ProjectName) (domain.Snapshot, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -64,7 +67,7 @@ func (s *memStore) Read(_ context.Context, name domain.ProjectName) (domain.Snap
 	return domain.Snapshot{Version: domain.Version(len(versions)), Variables: versions[len(versions)-1]}, nil
 }
 
-func (s *memStore) History(_ context.Context, name domain.ProjectName) ([]domain.Snapshot, error) {
+func (s *MemStore) History(_ context.Context, name domain.ProjectName) ([]domain.Snapshot, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -79,7 +82,7 @@ func (s *memStore) History(_ context.Context, name domain.ProjectName) ([]domain
 	return history, nil
 }
 
-func (s *memStore) Write(_ context.Context, name domain.ProjectName, vars domain.Variables, expected domain.Version) (domain.Version, error) {
+func (s *MemStore) Write(_ context.Context, name domain.ProjectName, vars domain.Variables, expected domain.Version) (domain.Version, error) {
 	if hook := s.takeHook(); hook != nil {
 		hook()
 	}
@@ -88,10 +91,10 @@ func (s *memStore) Write(_ context.Context, name domain.ProjectName, vars domain
 	defer s.mu.Unlock()
 
 	if failure, ok := s.failures[name.String()]; ok {
-		if failure.after == 0 {
-			return 0, failure.err
+		if failure.After == 0 {
+			return 0, failure.Err
 		}
-		failure.after--
+		failure.After--
 		s.failures[name.String()] = failure
 	}
 	versions := s.projects[name.String()]
@@ -102,7 +105,7 @@ func (s *memStore) Write(_ context.Context, name domain.ProjectName, vars domain
 	return domain.Version(len(versions) + 1), nil
 }
 
-func (s *memStore) Delete(_ context.Context, name domain.ProjectName) error {
+func (s *MemStore) Delete(_ context.Context, name domain.ProjectName) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -113,7 +116,21 @@ func (s *memStore) Delete(_ context.Context, name domain.ProjectName) error {
 	return nil
 }
 
-func (s *memStore) takeHook() func() {
+// FailWrites injects a write failure for project.
+func (s *MemStore) FailWrites(project string, failure WriteFailure) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.failures[project] = failure
+}
+
+// BeforeNextWrite runs hook once, right before the next write is applied.
+func (s *MemStore) BeforeNextWrite(hook func()) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.beforeWrite = hook
+}
+
+func (s *MemStore) takeHook() func() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	hook := s.beforeWrite
@@ -121,20 +138,21 @@ func (s *memStore) takeHook() func() {
 	return hook
 }
 
-// seed stores each map as a successive version of project.
-func (s *memStore) seed(project string, versions ...map[string]string) {
+// Seed stores each map as a successive version of project.
+func (s *MemStore) Seed(project string, versions ...map[string]string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for _, raw := range versions {
 		vars, err := domain.NewVariables(raw)
 		if err != nil {
-			panic(err)
+			panic(fmt.Sprintf("projecttest: invalid seed: %v", err))
 		}
 		s.projects[project] = append(s.projects[project], vars)
 	}
 }
 
-func (s *memStore) latest(project string) map[string]string {
+// Latest returns the newest variables of project, or nil.
+func (s *MemStore) Latest(project string) map[string]string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	versions := s.projects[project]
@@ -144,7 +162,8 @@ func (s *memStore) latest(project string) map[string]string {
 	return versions[len(versions)-1].Map()
 }
 
-func (s *memStore) has(project string) bool {
+// Has reports whether project exists.
+func (s *MemStore) Has(project string) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	_, ok := s.projects[project]
