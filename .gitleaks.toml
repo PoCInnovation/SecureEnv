@@ -1,0 +1,23 @@
+# gitleaks configuration: default rules plus HashiCorp Vault tokens.
+#   gitleaks git --config .gitleaks.toml .
+# Findings already in the history, and revoked, are listed in .gitleaksignore.
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "vault-token"
+description = "HashiCorp Vault service, batch or recovery token"
+# The default Vault rule missed the tokens committed in 2023 (see
+# .gitleaksignore), so match every hvs./hvb./hvr. token explicitly.
+regex = '''\b(hv[sbr]\.[A-Za-z0-9_-]{24,})\b'''
+keywords = ["hvs.", "hvb.", "hvr."]
+
+[allowlist]
+description = "Documentation placeholders and test fixtures"
+paths = [
+  '''(^|/)\.env\.example$''',
+]
+regexes = [
+  '''hvs\.test''',
+]

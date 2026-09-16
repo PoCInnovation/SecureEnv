@@ -26,13 +26,32 @@ See [docs/architecture.md](docs/architecture.md) for the code design and [docs/a
 
 ### Installation
 
-Requires Go 1.26+.
+The CLI is a single static binary, no Docker needed. Releases ship it for Linux and macOS (amd64, arm64) and Windows (amd64, arm64).
 
 ```bash
+# Linux / macOS: detects your OS and architecture and verifies the checksum
+curl -fsSL https://raw.githubusercontent.com/PoCInnovation/SecureEnv/main/scripts/install.sh | sh
+
+# Pin a version or choose where to install
+curl -fsSL https://raw.githubusercontent.com/PoCInnovation/SecureEnv/main/scripts/install.sh | SECUREENV_VERSION=v1.0.0 SECUREENV_INSTALL_DIR=~/bin sh
+
+# With a Go toolchain
 go install github.com/PoCInnovation/SecureEnv/cmd/secureenv@latest
 ```
 
-or from a clone: `make build` puts `secureenv` and `secureenv-api` in `bin/`.
+On Windows, download `secureenv_<version>_windows_<arch>.zip` from the [releases](https://github.com/PoCInnovation/SecureEnv/releases). Every archive is listed in `checksums.txt` and carries a GitHub build attestation:
+
+```bash
+gh attestation verify secureenv_1.0.0_linux_amd64.tar.gz --repo PoCInnovation/SecureEnv
+```
+
+The API is published both as archives (`secureenv-api_<version>_<os>_<arch>.tar.gz`, e.g. for a systemd service) and as a multi-arch image (`linux/amd64`, `linux/arm64`):
+
+```bash
+docker pull ghcr.io/pocinnovation/secureenv-api:1.0.0
+```
+
+From a clone, `make build` puts both binaries in `bin/`.
 
 ### Quickstart
 
@@ -98,11 +117,15 @@ The API ignores `VAULT_TOKEN`: it never acts with its own identity. For a produc
 ### Development
 
 ```bash
+make check              # lint, tests, govulncheck and gitleaks, like the CI
 make test               # unit and end-to-end tests with the race detector
 make lint               # golangci-lint
 make dev-up && make test-integration   # store contract against a real Vault
 make fuzz               # fuzz the .env parser
+make release-snapshot   # build every release archive into dist/
 ```
+
+See [docs/ci-cd.md](docs/ci-cd.md) for the CI checks and the release process.
 
 ## Get involved
 

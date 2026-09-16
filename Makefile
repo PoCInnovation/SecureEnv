@@ -4,7 +4,7 @@ LDFLAGS := -s -w -X main.version=$(VERSION)
 VAULT_ADDR ?= http://127.0.0.1:8200
 VAULT_TOKEN ?= dev-root
 
-.PHONY: all build test test-integration fuzz cover lint fmt dev-up dev-down clean
+.PHONY: all build test test-integration fuzz cover lint fmt vuln secrets check release-snapshot dev-up dev-down clean
 
 all: lint test build
 
@@ -31,6 +31,17 @@ lint: ## Run golangci-lint
 fmt: ## Format the code
 	golangci-lint fmt ./...
 
+vuln: ## Report known vulnerabilities reachable from the code
+	go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
+
+secrets: ## Scan the git history for secrets (requires gitleaks)
+	gitleaks git --config .gitleaks.toml --redact --no-banner .
+
+check: lint test vuln secrets ## Run the same checks as the CI, except Docker and Vault
+
+release-snapshot: ## Build release archives for every platform into dist/ (requires goreleaser)
+	goreleaser release --snapshot --clean
+
 dev-up: ## Start a local Vault dev server and the API
 	docker compose up -d --build --wait
 
@@ -38,4 +49,4 @@ dev-down: ## Stop the local stack
 	docker compose down
 
 clean:
-	rm -rf bin coverage.out
+	rm -rf bin dist coverage.out
