@@ -127,7 +127,11 @@ func (f *fakeVault) metadata(w http.ResponseWriter, secretPath string) {
 	}
 	versionMap := map[string]any{}
 	for i := range versions {
-		versionMap[strconv.Itoa(i+1)] = versionMetadata(i + 1)
+		versionMap[strconv.Itoa(i+1)] = map[string]any{
+			"created_time":  timestamp(),
+			"deletion_time": "",
+			"destroyed":     false,
+		}
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"data": map[string]any{
 		"current_version":      len(versions),
