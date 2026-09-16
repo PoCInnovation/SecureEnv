@@ -15,8 +15,8 @@ build: ## Build the CLI and the API into bin/
 test: ## Run unit and end-to-end tests
 	go test -race ./...
 
-test-integration: ## Run the store contract against a real Vault (see dev-up)
-	VAULT_ADDR=$(VAULT_ADDR) VAULT_TOKEN=$(VAULT_TOKEN) go test -race -tags integration -run TestVaultContract ./internal/vaultstore/
+test-integration: ## Run the Vault contract, OpenAPI conformance and end-to-end tests against a real Vault (see dev-up)
+	VAULT_ADDR=$(VAULT_ADDR) VAULT_TOKEN=$(VAULT_TOKEN) go test -race -tags integration ./internal/vaultstore/ ./internal/e2e/
 
 fuzz: ## Fuzz the .env parser
 	go test -run '^$$' -fuzz FuzzFormatParseRoundTrip -fuzztime 60s ./internal/dotenv/

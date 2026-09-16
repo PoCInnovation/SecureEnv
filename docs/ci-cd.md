@@ -10,11 +10,13 @@ Feature branches open pull requests into `dev`. `dev` is promoted to `main` thro
 |---|---|
 | Lint | `golangci-lint` findings, untidy `go.mod`/`go.sum` |
 | Test | failing tests (race detector on); coverage is shown in the job summary |
-| Integration (Vault) | store contract failing against a real Vault 2.1 server |
+| Integration (Vault) | a real Vault 2.1 server: store contract, conformance with Vault's OpenAPI document, and CLI → API → Vault end to end with the `deploy/` policies |
 | Vulnerabilities | vulnerabilities **reachable** from the code (`govulncheck`) |
 | Secrets | any secret in the git history (`gitleaks`, config in `.gitleaks.toml`) |
 | Build binaries | GoReleaser snapshot for every platform; archives are downloadable from the run |
 | Docker image | `linux/amd64` + `linux/arm64` build, and fixable HIGH/CRITICAL CVEs in the image (Trivy) |
+| Compose (dev stack) | `compose.yaml` not starting, or `scripts/smoke.sh` failing against it |
+| Compose (production stack) | `deploy/compose.prod.yaml` with generated certificates: init, unseal and bootstrap scripts (each run twice), API over TLS, CLI smoke test, TLS 1.2 refused, audit log written without clear tokens |
 | **CI result** | any job above not succeeding |
 
 Require only **CI result** (and **Analyze (Go)** from `codeql.yml`) in the branch protection of `dev` and `main`. New jobs are then enforced without touching the settings.

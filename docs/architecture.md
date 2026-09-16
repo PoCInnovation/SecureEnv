@@ -71,6 +71,10 @@ flowchart TB
 ## Testing strategy
 
 - **Unit tests** cover each package with table-driven tests. The `.env` parser also has a round-trip fuzz test.
-- **Contract tests** (`project/storetest`) describe the `Store` behaviour once and run against the in-memory store, an HTTP emulator of Vault, and a real Vault (`-tags integration`, run in CI).
-- **End-to-end tests** drive the API client and the CLI against the real HTTP handler and service backed by `projecttest.MemStore`.
+- **Contract tests** (`project/storetest`) describe the `Store` behaviour once and run against the in-memory store, an HTTP emulator of Vault, and a real Vault.
+- **Vault API conformance** (`vaultstore`, integration) records the adapter's HTTP traffic against a real Vault and checks it against the OpenAPI document Vault serves at `sys/internal/specs/openapi` (operations, query parameters, body fields). The same requests are then replayed on the emulator, which must return the same status codes and only fields Vault also returns, so unit tests use a faithful copy of the API.
+- **End-to-end tests** drive the API client and the CLI against the real HTTP handler backed by `projecttest.MemStore`. With the integration tag, `internal/e2e` runs the CLI against the real API server and a real Vault, using the policies from `deploy/vault/policies`.
+- **Deployment smoke tests** (CI) start both compose stacks on Linux. For production this covers TLS certificates, init, unseal, bootstrap, the API over TLS and the audit log. `scripts/smoke.sh` then drives the CLI against each stack.
 - **Architecture test** checks package dependencies.
+
+Integration tests need `VAULT_ADDR` and `VAULT_TOKEN` (`make dev-up && make test-integration`).

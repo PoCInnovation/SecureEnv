@@ -71,7 +71,6 @@ jobs:
         image: hashicorp/vault:2.1.0
         env:
           VAULT_DEV_ROOT_TOKEN_ID: ci-root
-          SKIP_SETCAP: "1"
         ports:
           - 8200:8200
     env:
@@ -92,7 +91,9 @@ jobs:
           done
           echo "Vault did not become healthy" >&2
           exit 1
-      - run: go test -race -tags integration -run TestVaultContract -v ./internal/vaultstore/
+      # Store contract, conformance with the OpenAPI document served by Vault,
+      # and CLI -> API -> Vault end to end with the deploy/ policies.
+      - run: go test -race -tags integration -v ./internal/vaultstore/ ./internal/e2e/
 
   vulncheck:
     name: Vulnerabilities (govulncheck)
@@ -191,11 +192,128 @@ jobs:
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock "$TRIVY_IMAGE" \
             image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --no-progress "$IMAGE"
 
+  compose-dev:
+    name: Compose (dev stack)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SECURE_ENV_API_URL: http://127.0.0.1:8080
+      SECURE_ENV_TOKEN: dev-root
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Start Vault and the API
+        run: docker compose up -d --build --wait
+      - name: Use the CLI against the stack
+        run: |
+          go build -o secureenv ./cmd/secureenv
+          ./scripts/smoke.sh ./secureenv http://127.0.0.1:8080
+      - name: Logs
+        if: failure()
+        run: docker compose logs
+      - name: Stop
+        if: always()
+        run: docker compose down -v
+
+  compose-prod:
+    name: Compose (production stack)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: deploy
+    env:
+      COMPOSE_FILE: compose.prod.yaml
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Generate test certificates
+        run: ./vault/scripts/gen-certs.sh
+      - name: Start Vault
+        run: |
+          docker compose up -d vault
+          for _ in $(seq 60); do
+            # vault status exits 0 when unsealed and 2 when sealed.
+            status=0
+            docker compose exec -T vault vault status > /dev/null 2>&1 || status=$?
+            [ "$status" -eq 0 ] || [ "$status" -eq 2 ] && exit 0
+            sleep 1
+          done
+          echo "Vault did not start" >&2
+          exit 1
+      - name: Initialize, unseal and bootstrap Vault
+        run: |
+          set -euo pipefail
+          docker compose exec -T -e KEY_SHARES=1 -e KEY_THRESHOLD=1 vault /vault/scripts/init.sh > "$RUNNER_TEMP/init.txt"
+          key=$(awk -F': ' '/^Unseal Key 1:/ { print $2 }' "$RUNNER_TEMP/init.txt")
+          root=$(awk -F': ' '/^Initial Root Token:/ { print $2 }' "$RUNNER_TEMP/init.txt")
+          rm "$RUNNER_TEMP/init.txt"
+          echo "::add-mask::$key"
+          echo "::add-mask::$root"
+
+          # init.sh must be safe to run twice.
+          docker compose exec -T vault /vault/scripts/init.sh
+
+          docker compose exec -T vault vault operator unseal "$key" > /dev/null
+          for _ in $(seq 30); do
+            docker compose exec -T -e VAULT_TOKEN="$root" vault vault read -field=is_self sys/leader 2> /dev/null | grep -q true && break
+            sleep 1
+          done
+
+          docker compose exec -T -e VAULT_TOKEN="$root" vault /vault/scripts/bootstrap.sh
+          docker compose exec -T -e VAULT_TOKEN="$root" vault /vault/scripts/bootstrap.sh
+          writer=$(docker compose exec -T -e VAULT_TOKEN="$root" vault vault token create -policy=secureenv-writer -ttl=15m -field=token)
+          echo "::add-mask::$writer"
+          echo "SECURE_ENV_TOKEN=$writer" >> "$GITHUB_ENV"
+          echo "VAULT_ROOT_TOKEN=$root" >> "$GITHUB_ENV"
+      - name: Start the API over TLS
+        run: |
+          docker compose up -d --build api
+          for _ in $(seq 60); do
+            curl -fsS --cacert vault/certs/ca.pem https://localhost:8080/readyz && exit 0
+            sleep 1
+          done
+          echo "API not ready" >&2
+          exit 1
+      - name: Use the CLI against the stack
+        env:
+          SECURE_ENV_CA_CERT: ${{ github.workspace }}/deploy/vault/certs/ca.pem
+        run: |
+          go build -o "$RUNNER_TEMP/secureenv" ../cmd/secureenv
+          ../scripts/smoke.sh "$RUNNER_TEMP/secureenv" https://localhost:8080
+      - name: Check TLS and audit log
+        run: |
+          set -euo pipefail
+          if curl -fsS --tlsv1.2 --tls-max 1.2 --cacert vault/certs/ca.pem https://localhost:8200/v1/sys/health > /dev/null 2>&1; then
+            echo "Vault accepted TLS 1.2" >&2
+            exit 1
+          fi
+          docker compose exec -T vault sh -c 'test -s /vault/logs/audit.log'
+          if docker compose exec -T vault grep -q "$SECURE_ENV_TOKEN" /vault/logs/audit.log; then
+            echo "token stored in clear in the audit log" >&2
+            exit 1
+          fi
+          docker compose exec -T -e VAULT_TOKEN="$VAULT_ROOT_TOKEN" vault vault token revoke -self
+      - name: Logs
+        if: failure()
+        run: docker compose logs
+      - name: Stop
+        if: always()
+        run: docker compose down -v
+
   # Single status to require in branch protection.
   ci-result:
     name: CI result
     if: always()
-    needs: [lint, test, integration, vulncheck, secrets, release-snapshot, docker]
+    needs: [lint, test, integration, vulncheck, secrets, release-snapshot, docker, compose-dev, compose-prod]
     runs-on: ubuntu-latest
     steps:
       - name: Fail if a required job did not succeed

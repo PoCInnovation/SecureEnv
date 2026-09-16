@@ -1,6 +1,7 @@
 #!/bin/sh
 # Generate a local CA and certificates for Vault and the API. For testing
-# only: use certificates from your PKI in production.
+# only: use certificates from your PKI in production (see deploy/README.md for
+# the file ownership the containers need).
 set -eu
 
 dir="$(cd "$(dirname "$0")/../certs" && pwd)"
@@ -20,5 +21,9 @@ issue() {
 
 issue vault "DNS:vault,DNS:localhost,IP:127.0.0.1"
 issue api "DNS:api,DNS:localhost,IP:127.0.0.1"
-chmod 600 ./*-key.pem
+# The containers run as their own users (vault: uid 100, API: uid 65532), so
+# bind-mounted keys must be readable by them. Acceptable for throwaway test
+# certificates only; ca-key.pem is never mounted and stays private.
+chmod 644 vault-key.pem api-key.pem
+chmod 600 ca-key.pem
 echo "Certificates written to $dir" >&2

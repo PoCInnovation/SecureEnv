@@ -8,7 +8,6 @@ services:
     command: server -dev -dev-listen-address=0.0.0.0:8200
     environment:
       VAULT_DEV_ROOT_TOKEN_ID: dev-root
-      SKIP_SETCAP: "1"
     ports:
       - "127.0.0.1:8200:8200"
     healthcheck:
