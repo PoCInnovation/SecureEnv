@@ -1,77 +1,108 @@
-
 # SecureEnv
 
-The goal is to create a CLI that can interact with a backend to manage and synchronize environment variables in projects. 
-First, a prototype for local synchronization will be made (`.env` or `.envrc`), then the goal will be to explore the possibilities of the Vault and extend the synchronization to containers or other environments.
+SecureEnv keeps project environment variables in [HashiCorp Vault](https://developer.hashicorp.com/vault) and synchronises them with local `.env` files, like git does for code.
+
+It has two parts:
+
+- **`secureenv`**, a CLI to `pull`, `push` and inspect the variables of a project.
+- **`secureenv-api`**, an HTTP API in front of Vault's KV v2 engine. Each caller brings their own Vault token, so Vault policies decide who can read or change what.
 
 ## How does it work?
 
-COMING SOON
+```mermaid
+flowchart LR
+    dev["secureenv CLI<br/>.env file"] -- "HTTPS + Vault token" --> api["secureenv-api"]
+    ci["CI / scripts"] -- "HTTPS + Vault token" --> api
+    api -- "KV v2, check-and-set" --> vault[("HashiCorp Vault")]
+```
+
+- Each **project** is one KV v2 secret, and its **variables** are the key/value pairs of that secret. Vault keeps every version.
+- Every write uses check-and-set: if two people push at the same time, the second one gets a conflict instead of silently erasing the first one's changes.
+- Local `SECURE_ENV_*` entries (project name, API URL, token) configure the CLI and are never sent to Vault.
+
+See [docs/architecture.md](docs/architecture.md) for the code design and [docs/api.md](docs/api.md) for the HTTP API.
 
 ## Getting Started
 
 ### Installation
 
-Clone the repository:
+Requires Go 1.26+.
 
 ```bash
-git git@github.com:PoCInnovation/SecureEnv.git
+go install github.com/PoCInnovation/SecureEnv/cmd/secureenv@latest
 ```
 
-Go to the CLI folder and build secureenv:
-
-```bash
-cd CLI/
-```
-```bash
-go build secureenv
-```
-
-To use it everywhere:
-```bash
-sudo cp secureenv /usr/local/bin/
-```
+or from a clone: `make build` puts `secureenv` and `secureenv-api` in `bin/`.
 
 ### Quickstart
 
-In your usual `.env` file set the `SECURE_ENV_TOKEN` and `SECURE_ENV_HOST` like in the `.env.example`.
+Start a local Vault dev server and the API (requires Docker):
+
+```bash
+make dev-up
+export SECURE_ENV_API_URL=http://127.0.0.1:8080
+export SECURE_ENV_TOKEN=dev-root   # dev only, use a scoped token otherwise
+```
+
+In any git repository:
+
+```bash
+secureenv init                 # links .env to a project named after the git origin, e.g. PoCInnovation_SecureEnv
+secureenv project create       # creates that project
+echo 'DATABASE_URL="postgres://localhost/app"' >> .env
+secureenv push                 # sends local variables
+secureenv status               # compares .env with the project
+```
+
+A teammate then runs `secureenv clone PoCInnovation_SecureEnv` to get the same `.env`.
 
 ### Usage
 
-```bash 
-./secureenv clone `project_name` // Clone the project with name value
-```
-```bash
-./secureenv create `project_name` // Create the project with name value
-```
-```bash
-./secureenv delete `project_name` // Delete the project with name value
-```
-```bash
-./secureenv list // List all the projects
-```
-```bash
-./secureenv list `project_name` // List all the secrets of the project with name value
-```
-```bash
-./secureenv get `project_name` `secret_name` // Get the secret with name value of the project with name value
-```
-```bash
-./secureenv set `project_name` `secret_name` `secret_value` // Set the secret with name value of the project with name value
-```
-```bash
-./secureenv update `project_name` `secret_name` `secret_value` // Update the secret with name value of the project with name value
-```
-```bash
-./secureenv delete `project_name` `secret_name` // Delete the secret with name value of the project with name value
-```
-```bash
-./secureenv -h // Display the header
-```
-```bash
-./secureenv status // Display the status of the vault
+```text
+secureenv [-api URL] [-project NAME] [-file PATH] <command>
+
+  init [project]          link the local env file to a project
+  clone [project]         init, then pull
+  status                  show local (+), modified (~) and remote only (-) variables
+  pull [-force]           write the project variables into .env (keeps SECURE_ENV_* entries)
+  push [-force]           replace the project variables with .env
+  project list|create|info|rename|delete
+  var list [-values] | get <key> | set <key> [value] | unset <key>
+  version
 ```
 
+- `pull` refuses to overwrite local changes that were not pushed, and `push` refuses to delete remote variables missing from `.env`. Use `-force` to go ahead anyway.
+- `var set KEY` without a value reads it from stdin, so the secret stays out of your shell history.
+- Settings are resolved in this order: flag, then environment variable, then `.env`, then default:
+
+| Setting | Flag | Variable | Default |
+|---|---|---|---|
+| API URL | `-api` | `SECURE_ENV_API_URL` | `http://127.0.0.1:8080` |
+| Vault token | | `SECURE_ENV_TOKEN`, then `VAULT_TOKEN` | required |
+| Project | `-project` | `SECURE_ENV_PROJECT` | derived from the git `origin` remote |
+
+### Running the API
+
+The API is configured through environment variables. Vault connection settings use the standard `VAULT_*` variables (`VAULT_ADDR`, `VAULT_CACERT`, ...).
+
+| Variable | Default | Description |
+|---|---|---|
+| `SECURE_ENV_LISTEN_ADDR` | `:8080` | listen address |
+| `SECURE_ENV_VAULT_MOUNT` | `secret` | KV v2 mount path |
+| `SECURE_ENV_VAULT_PREFIX` | *(empty)* | folder holding projects in the mount, `secureenv` in the provided deployments |
+| `SECURE_ENV_TLS_CERT_FILE` / `SECURE_ENV_TLS_KEY_FILE` | | serve HTTPS directly |
+| `SECURE_ENV_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error` |
+
+The API ignores `VAULT_TOKEN`: it never acts with its own identity. For a production setup (TLS, integrated storage, audit logs, least-privilege policies), see [deploy/README.md](deploy/README.md).
+
+### Development
+
+```bash
+make test               # unit and end-to-end tests with the race detector
+make lint               # golangci-lint
+make dev-up && make test-integration   # store contract against a real Vault
+make fuzz               # fuzz the .env parser
+```
 
 ## Get involved
 
