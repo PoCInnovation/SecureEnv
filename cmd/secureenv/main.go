@@ -37,8 +37,12 @@ func run() int {
 		Getenv:  os.Getenv,
 		Dir:     dir,
 		Version: version,
-		NewAPI: func(baseURL, token string) (cli.API, error) {
-			return apiclient.New(baseURL, token, apiclient.WithUserAgent("secureenv/"+version))
+		NewAPI: func(cfg cli.APIConfig) (cli.API, error) {
+			opts := []apiclient.Option{apiclient.WithUserAgent("secureenv/" + version)}
+			if cfg.CACertFile != "" {
+				opts = append(opts, apiclient.WithCACertFile(cfg.CACertFile))
+			}
+			return apiclient.New(cfg.URL, cfg.Token, opts...)
 		},
 		OriginURL: gitremote.OriginURL,
 	})

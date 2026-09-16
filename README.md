@@ -99,6 +99,7 @@ secureenv [-api URL] [-project NAME] [-file PATH] <command>
 | API URL | `-api` | `SECURE_ENV_API_URL` | `http://127.0.0.1:8080` |
 | Vault token | | `SECURE_ENV_TOKEN`, then `VAULT_TOKEN` | required |
 | Project | `-project` | `SECURE_ENV_PROJECT` | derived from the git `origin` remote |
+| Extra trusted CA (PEM) | | `SECURE_ENV_CA_CERT` | system roots only |
 
 ### Running the API
 

@@ -16,6 +16,7 @@ const (
 	KeyAPIURL        = "SECURE_ENV_API_URL"
 	KeyToken         = "SECURE_ENV_TOKEN" //nolint:gosec // environment variable name, not a credential
 	KeyProject       = "SECURE_ENV_PROJECT"
+	KeyCACert        = "SECURE_ENV_CA_CERT"
 	keyLegacyProject = "SECURE_ENV_PROJECT_NAME"
 	keyVaultToken    = "VAULT_TOKEN"
 
@@ -35,10 +36,15 @@ type app struct {
 }
 
 func (a *app) envPath() string {
-	if filepath.IsAbs(a.file) {
-		return a.file
+	return a.resolve(a.file)
+}
+
+// resolve makes a non empty relative path relative to the working directory.
+func (a *app) resolve(path string) string {
+	if path == "" || filepath.IsAbs(path) {
+		return path
 	}
-	return filepath.Join(a.env.Dir, a.file)
+	return filepath.Join(a.env.Dir, path)
 }
 
 // setting returns the first non empty value among the flag, the process
@@ -77,7 +83,11 @@ func (a *app) api() (API, error) {
 	if err != nil {
 		return nil, err
 	}
-	return a.env.NewAPI(url, token)
+	caCert, err := a.setting("", KeyCACert)
+	if err != nil {
+		return nil, err
+	}
+	return a.env.NewAPI(APIConfig{URL: url, Token: token, CACertFile: a.resolve(caCert)})
 }
 
 // projectName resolves the project: explicit argument, -project flag,

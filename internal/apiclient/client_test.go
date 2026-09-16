@@ -2,12 +2,15 @@ package apiclient_test
 
 import (
 	"context"
+	"encoding/pem"
 	"errors"
 	"io"
 	"log/slog"
 	"maps"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"slices"
 	"testing"
 
@@ -225,5 +228,51 @@ func TestRequestHeaders(t *testing.T) {
 	}
 	if got.Get("Authorization") != "Bearer s3cr3t" || got.Get("User-Agent") != "secureenv/test" {
 		t.Fatalf("headers = %v", got)
+	}
+}
+
+func TestCustomCACertificate(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`{"projects":["tls"]}`))
+	}))
+	t.Cleanup(server.Close)
+
+	caFile := filepath.Join(t.TempDir(), "ca.pem")
+	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: server.Certificate().Raw})
+	if err := os.WriteFile(caFile, certPEM, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	untrusted, _ := apiclient.New(server.URL, "token")
+	if _, err := untrusted.ListProjects(t.Context()); err == nil {
+		t.Fatal("a server signed by an unknown CA must be rejected")
+	}
+
+	client, err := apiclient.New(server.URL, "token", apiclient.WithCACertFile(caFile))
+	if err != nil {
+		t.Fatalf("New() error: %v", err)
+	}
+	names, err := client.ListProjects(t.Context())
+	if err != nil || len(names) != 1 || names[0] != "tls" {
+		t.Fatalf("ListProjects() = %v, %v", names, err)
+	}
+}
+
+func TestInvalidCACertificateFile(t *testing.T) {
+	t.Parallel()
+
+	missing := filepath.Join(t.TempDir(), "missing.pem")
+	if _, err := apiclient.New("https://localhost", "token", apiclient.WithCACertFile(missing)); err == nil {
+		t.Error("missing CA file should fail")
+	}
+
+	garbage := filepath.Join(t.TempDir(), "garbage.pem")
+	if err := os.WriteFile(garbage, []byte("not a certificate"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := apiclient.New("https://localhost", "token", apiclient.WithCACertFile(garbage)); err == nil {
+		t.Error("file without certificates should fail")
 	}
 }

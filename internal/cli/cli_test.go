@@ -30,13 +30,14 @@ func (healthy) Ping(context.Context) error { return nil }
 
 // harness runs the CLI against the real HTTP API backed by an in-memory store.
 type harness struct {
-	t       *testing.T
-	store   *projecttest.MemStore
-	dir     string
-	env     map[string]string
-	origin  string
-	apiURL  string
-	gotURLs []string
+	t          *testing.T
+	store      *projecttest.MemStore
+	dir        string
+	env        map[string]string
+	origin     string
+	apiURL     string
+	gotURLs    []string
+	gotCACerts []string
 }
 
 func newHarness(t *testing.T) *harness {
@@ -81,9 +82,10 @@ func (h *harness) run(stdin string, args ...string) result {
 		Getenv:  func(key string) string { return h.env[key] },
 		Dir:     h.dir,
 		Version: "test",
-		NewAPI: func(baseURL, token string) (cli.API, error) {
-			h.gotURLs = append(h.gotURLs, baseURL)
-			return apiclient.New(baseURL, token)
+		NewAPI: func(cfg cli.APIConfig) (cli.API, error) {
+			h.gotURLs = append(h.gotURLs, cfg.URL)
+			h.gotCACerts = append(h.gotCACerts, cfg.CACertFile)
+			return apiclient.New(cfg.URL, cfg.Token)
 		},
 		OriginURL: func(context.Context, string) (string, error) {
 			if h.origin == "" {
@@ -265,6 +267,12 @@ func TestSettingsPrecedence(t *testing.T) {
 	h.mustRun("-api", h.apiURL+"/", "project", "list")
 	if last := h.gotURLs[len(h.gotURLs)-1]; last != h.apiURL+"/" {
 		t.Fatalf("-api flag ignored, used %q", last)
+	}
+
+	h.env[cli.KeyCACert] = "certs/ca.pem"
+	h.mustRun("project", "list")
+	if last := h.gotCACerts[len(h.gotCACerts)-1]; last != filepath.Join(h.dir, "certs/ca.pem") {
+		t.Fatalf("%s resolved to %q, want a path relative to the working directory", cli.KeyCACert, last)
 	}
 }
 

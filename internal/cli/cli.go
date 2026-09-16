@@ -33,6 +33,15 @@ type API interface {
 	DeleteVariable(ctx context.Context, project, key string) (domain.Version, error)
 }
 
+// APIConfig holds the settings needed to reach the API.
+type APIConfig struct {
+	URL   string
+	Token string
+	// CACertFile, when set, is a PEM file of extra trusted certificate
+	// authorities.
+	CACertFile string
+}
+
 // Env holds everything the CLI needs from the outside world.
 type Env struct {
 	Stdin  io.Reader
@@ -45,7 +54,7 @@ type Env struct {
 	// Version is printed by the version command.
 	Version string
 	// NewAPI builds an API client.
-	NewAPI func(baseURL, token string) (API, error)
+	NewAPI func(cfg APIConfig) (API, error)
 	// OriginURL returns the git origin URL of the repository holding dir.
 	OriginURL func(ctx context.Context, dir string) (string, error)
 }

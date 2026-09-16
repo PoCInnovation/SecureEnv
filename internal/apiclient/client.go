@@ -4,11 +4,14 @@ package apiclient
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -45,13 +48,46 @@ type Client struct {
 }
 
 // Option customises a Client.
-type Option func(*Client)
+type Option func(*Client) error
 
 // WithHTTPClient replaces the default HTTP client.
-func WithHTTPClient(c *http.Client) Option { return func(cl *Client) { cl.httpClient = c } }
+func WithHTTPClient(c *http.Client) Option {
+	return func(cl *Client) error {
+		cl.httpClient = c
+		return nil
+	}
+}
 
 // WithUserAgent sets the User-Agent header.
-func WithUserAgent(ua string) Option { return func(cl *Client) { cl.userAgent = ua } }
+func WithUserAgent(ua string) Option {
+	return func(cl *Client) error {
+		cl.userAgent = ua
+		return nil
+	}
+}
+
+// WithCACertFile trusts the PEM certificates in path in addition to the
+// system roots, for APIs served with a private certificate authority.
+func WithCACertFile(path string) Option {
+	return func(cl *Client) error {
+		pem, err := os.ReadFile(path) //nolint:gosec // path is chosen by the user on purpose
+		if err != nil {
+			return fmt.Errorf("read CA certificate: %w", err)
+		}
+		roots, err := x509.SystemCertPool()
+		if err != nil {
+			roots = x509.NewCertPool()
+		}
+		if !roots.AppendCertsFromPEM(pem) {
+			return fmt.Errorf("no PEM certificate found in %s", path)
+		}
+
+		transport := http.DefaultTransport.(*http.Transport).Clone()
+		transport.TLSClientConfig = &tls.Config{RootCAs: roots, MinVersion: tls.VersionTLS12}
+		cl.httpClient = &http.Client{Timeout: defaultTimeout, Transport: transport}
+		return nil
+	}
+}
 
 // New returns a client for the API at baseURL.
 func New(baseURL, token string, opts ...Option) (*Client, error) {
@@ -70,7 +106,9 @@ func New(baseURL, token string, opts ...Option) (*Client, error) {
 		userAgent:  "secureenv",
 	}
 	for _, opt := range opts {
-		opt(c)
+		if err := opt(c); err != nil {
+			return nil, err
+		}
 	}
 	return c, nil
 }
