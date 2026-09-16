@@ -10,7 +10,7 @@ import (
 // Load parses the .env file at path. A missing file yields an error matching
 // fs.ErrNotExist.
 func Load(path string) (File, error) {
-	f, err := os.Open(path)
+	f, err := os.Open(path) //nolint:gosec // reading a user-chosen env file is the purpose
 	if err != nil {
 		return File{}, err
 	}
@@ -38,11 +38,11 @@ func Save(path string, f File) error {
 	defer os.Remove(tmp.Name())
 
 	if err := tmp.Chmod(0o600); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return fmt.Errorf("dotenv: chmod: %w", err)
 	}
 	if _, err := tmp.Write(buf.Bytes()); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return fmt.Errorf("dotenv: write: %w", err)
 	}
 	if err := tmp.Close(); err != nil {

@@ -11,8 +11,6 @@ import (
 	"github.com/PoCInnovation/SecureEnv/internal/domain"
 )
 
-// MemStore is an in-memory project.Store that mimics Vault KV v2 versioning
-// and check-and-set semantics. It is safe for concurrent use.
 // WriteFailure makes writes to a project fail with Err once After writes
 // succeeded.
 type WriteFailure struct {
@@ -20,6 +18,8 @@ type WriteFailure struct {
 	Err   error
 }
 
+// MemStore is an in-memory project.Store that mimics Vault KV v2 versioning
+// and check-and-set semantics. It is safe for concurrent use.
 type MemStore struct {
 	mu       sync.Mutex
 	projects map[string][]domain.Variables
@@ -33,6 +33,7 @@ func NewMemStore() *MemStore {
 	return &MemStore{projects: map[string][]domain.Variables{}, failures: map[string]WriteFailure{}}
 }
 
+// List implements project.Store.
 func (s *MemStore) List(context.Context) ([]domain.ProjectName, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -45,6 +46,7 @@ func (s *MemStore) List(context.Context) ([]domain.ProjectName, error) {
 	return names, nil
 }
 
+// Info implements project.Store.
 func (s *MemStore) Info(_ context.Context, name domain.ProjectName) (domain.ProjectInfo, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -56,6 +58,7 @@ func (s *MemStore) Info(_ context.Context, name domain.ProjectName) (domain.Proj
 	return domain.ProjectInfo{Name: name, CurrentVersion: domain.Version(len(versions))}, nil
 }
 
+// Read implements project.Store.
 func (s *MemStore) Read(_ context.Context, name domain.ProjectName) (domain.Snapshot, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -67,6 +70,7 @@ func (s *MemStore) Read(_ context.Context, name domain.ProjectName) (domain.Snap
 	return domain.Snapshot{Version: domain.Version(len(versions)), Variables: versions[len(versions)-1]}, nil
 }
 
+// History implements project.Store.
 func (s *MemStore) History(_ context.Context, name domain.ProjectName) ([]domain.Snapshot, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -82,6 +86,7 @@ func (s *MemStore) History(_ context.Context, name domain.ProjectName) ([]domain
 	return history, nil
 }
 
+// Write implements project.Store.
 func (s *MemStore) Write(_ context.Context, name domain.ProjectName, vars domain.Variables, expected domain.Version) (domain.Version, error) {
 	if hook := s.takeHook(); hook != nil {
 		hook()
@@ -105,6 +110,7 @@ func (s *MemStore) Write(_ context.Context, name domain.ProjectName, vars domain
 	return domain.Version(len(versions) + 1), nil
 }
 
+// Delete implements project.Store.
 func (s *MemStore) Delete(_ context.Context, name domain.ProjectName) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

@@ -45,7 +45,7 @@ func TestReadRejectsNonStringValues(t *testing.T) {
 	fake, client := newFakeVault(t)
 	fake.secrets["app"] = []map[string]any{{"PORT": 8080}}
 
-	_, err := vaultstore.New(client, vaultstore.Options{}).Read(t.Context(), mustName(t, "app"))
+	_, err := vaultstore.New(client, vaultstore.Options{}).Read(t.Context(), appProject(t))
 	if err == nil {
 		t.Fatal("Read() should reject non string values")
 	}
@@ -67,7 +67,7 @@ func TestErrorMapping(t *testing.T) {
 			fake.failWith(tt.status, tt.errors...)
 			store := vaultstore.New(client, vaultstore.Options{})
 
-			_, err := store.Write(t.Context(), mustName(t, "app"), domain.Variables{}, domain.NoVersion)
+			_, err := store.Write(t.Context(), appProject(t), domain.Variables{}, domain.NoVersion)
 			if !errors.Is(err, tt.want) {
 				t.Fatalf("Write() error = %v, want %v", err, tt.want)
 			}
@@ -78,7 +78,7 @@ func TestErrorMapping(t *testing.T) {
 		fake, client := newFakeVault(t)
 		fake.failWith(http.StatusBadRequest, "something else")
 
-		_, err := vaultstore.New(client, vaultstore.Options{}).Write(t.Context(), mustName(t, "app"), domain.Variables{}, domain.NoVersion)
+		_, err := vaultstore.New(client, vaultstore.Options{}).Write(t.Context(), appProject(t), domain.Variables{}, domain.NoVersion)
 		if err == nil || errors.Is(err, domain.ErrVersionConflict) {
 			t.Fatalf("Write() error = %v, want a generic error", err)
 		}
@@ -109,9 +109,9 @@ func TestPing(t *testing.T) {
 	}
 }
 
-func mustName(t *testing.T, raw string) domain.ProjectName {
+func appProject(t *testing.T) domain.ProjectName {
 	t.Helper()
-	name, err := domain.NewProjectName(raw)
+	name, err := domain.NewProjectName("app")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,7 +122,7 @@ func TestPrefixIsAppliedToSecretPaths(t *testing.T) {
 	fake, client := newFakeVault(t)
 	store := vaultstore.New(client, vaultstore.Options{Prefix: "/teams/core/"})
 
-	if _, err := store.Write(t.Context(), mustName(t, "app"), domain.Variables{}, domain.NoVersion); err != nil {
+	if _, err := store.Write(t.Context(), appProject(t), domain.Variables{}, domain.NoVersion); err != nil {
 		t.Fatal(err)
 	}
 	if _, ok := fake.secrets["teams/core/app"]; !ok {

@@ -182,7 +182,7 @@ func (f File) Format(w io.Writer) error {
 	bw := bufio.NewWriter(w)
 	writeGroup(bw, f.values, reserved)
 	if len(reserved) > 0 && len(others) > 0 {
-		bw.WriteByte('\n')
+		_ = bw.WriteByte('\n') // write errors are sticky and returned by Flush
 	}
 	writeGroup(bw, f.values, others)
 	return bw.Flush()

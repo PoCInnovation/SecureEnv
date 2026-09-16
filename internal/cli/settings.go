@@ -14,7 +14,7 @@ import (
 // Settings read from the environment or the local .env file.
 const (
 	KeyAPIURL        = "SECURE_ENV_API_URL"
-	KeyToken         = "SECURE_ENV_TOKEN"
+	KeyToken         = "SECURE_ENV_TOKEN" //nolint:gosec // environment variable name, not a credential
 	KeyProject       = "SECURE_ENV_PROJECT"
 	keyLegacyProject = "SECURE_ENV_PROJECT_NAME"
 	keyVaultToken    = "VAULT_TOKEN"

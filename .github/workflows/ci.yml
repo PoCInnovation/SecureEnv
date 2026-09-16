@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.13.2
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: go test -race -coverprofile=coverage.out ./...
+      - run: go tool cover -func=coverage.out | tail -1
+
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      vault:
+        image: hashicorp/vault:2.1.0
+        env:
+          VAULT_DEV_ROOT_TOKEN_ID: ci-root
+          SKIP_SETCAP: "1"
+        ports:
+          - 8200:8200
+    env:
+      VAULT_ADDR: http://127.0.0.1:8200
+      VAULT_TOKEN: ci-root
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Wait for Vault
+        run: |
+          for _ in $(seq 30); do
+            curl -fsS "$VAULT_ADDR/v1/sys/health" && exit 0
+            sleep 1
+          done
+          exit 1
+      - run: go test -race -tags integration -run TestVaultContract -v ./internal/vaultstore/
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build --build-arg VERSION=${{ github.sha }} -t secureenv-api:ci .

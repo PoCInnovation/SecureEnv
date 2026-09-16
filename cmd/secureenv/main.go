@@ -17,16 +17,20 @@ import (
 var version = "dev"
 
 func main() {
+	os.Exit(run())
+}
+
+func run() int {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
 	dir, err := os.Getwd()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "secureenv:", err)
-		os.Exit(cli.ExitError)
+		return cli.ExitError
 	}
 
-	code := cli.Run(ctx, os.Args[1:], cli.Env{
+	return cli.Run(ctx, os.Args[1:], cli.Env{
 		Stdin:   os.Stdin,
 		Stdout:  os.Stdout,
 		Stderr:  os.Stderr,
@@ -38,6 +42,4 @@ func main() {
 		},
 		OriginURL: gitremote.OriginURL,
 	})
-	stop()
-	os.Exit(code)
 }

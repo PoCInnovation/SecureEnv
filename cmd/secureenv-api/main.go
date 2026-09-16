@@ -30,7 +30,7 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	listener, err := net.Listen("tcp", cfg.ListenAddr)
+	listener, err := new(net.ListenConfig).Listen(ctx, "tcp", cfg.ListenAddr)
 	if err != nil {
 		return err
 	}

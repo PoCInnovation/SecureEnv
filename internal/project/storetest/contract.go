@@ -51,7 +51,7 @@ func Run(t *testing.T, newStore Factory) {
 		store := newStore(t)
 		ctx := t.Context()
 		name := mustName(t, "app")
-		want := map[string]string{"URL": "postgres://u:p@h/db?a=b", "MULTI": "l1\nl2", "EMPTY": ""}
+		want := map[string]string{"URL": "postgres://db.internal:5432/app?sslmode=disable&a=b", "MULTI": "l1\nl2", "EMPTY": ""}
 
 		version, err := store.Write(ctx, name, mustVars(t, want), domain.NoVersion)
 		if err != nil {
