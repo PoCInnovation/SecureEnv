@@ -1,16 +1,23 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.26.8-alpine AS build
+# The build stage runs on the builder's native platform and cross-compiles for
+# the target one, so multi-arch images build fast without emulation.
+FROM --platform=$BUILDPLATFORM golang:1.26.8-alpine@sha256:ce864e7223ac17b1775e6fd0b4c0db580c2eb50e7953a427916379e4b92a1628 AS build
 WORKDIR /src
-ENV CGO_ENABLED=0
+ENV CGO_ENABLED=0 GOTOOLCHAIN=local
 COPY go.mod go.sum ./
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY cmd ./cmd
 COPY internal ./internal
-ARG VERSION=dev
-RUN go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o /out/secureenv-api ./cmd/secureenv-api
+ARG TARGETOS TARGETARCH VERSION=dev
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
+    GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o /out/secureenv-api ./cmd/secureenv-api
 
-FROM gcr.io/distroless/static-debian12:nonroot
+FROM gcr.io/distroless/static-debian12:nonroot@sha256:afa5c872c891853ca7fcf1f12c3edb23f7eeef36189728842dd51042ff57f7ab
+LABEL org.opencontainers.image.source="https://github.com/PoCInnovation/SecureEnv" \
+      org.opencontainers.image.description="SecureEnv HTTP API in front of HashiCorp Vault" \
+      org.opencontainers.image.licenses="Apache-2.0"
 COPY --from=build /out/secureenv-api /secureenv-api
 USER nonroot:nonroot
 EXPOSE 8080
