@@ -1,0 +1,28 @@
+# Local development stack: an in-memory Vault dev server and the API.
+# Never use this configuration in production, see deploy/compose.prod.yaml.
+name: secureenv-dev
+
+services:
+  vault:
+    image: hashicorp/vault:2.1.1@sha256:47f14a6acb98f48d798a07df7c83f23a6e636e1cf724c5f8ff165cb32667a1e2
+    command: server -dev -dev-listen-address=0.0.0.0:8200
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: dev-root
+    ports:
+      - "127.0.0.1:8200:8200"
+    healthcheck:
+      test: ["CMD", "vault", "status", "-address=http://127.0.0.1:8200"]
+      interval: 2s
+      retries: 15
+
+  api:
+    build: .
+    depends_on:
+      vault:
+        condition: service_healthy
+    environment:
+      VAULT_ADDR: http://vault:8200
+      SECURE_ENV_VAULT_PREFIX: secureenv
+      SECURE_ENV_LOG_LEVEL: debug
+    ports:
+      - "127.0.0.1:8080:8080"

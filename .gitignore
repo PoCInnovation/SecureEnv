@@ -1,0 +1,17 @@
+# Binaries
+/bin/
+/dist/
+
+# Local environment files hold secrets
+.env
+.env.*
+!.env.example
+
+# Test and coverage output
+coverage.out
+*.test
+
+# Editors
+.idea/
+.vscode/
+.DS_Store

@@ -1,0 +1,46 @@
+# Weekly dependency updates, targeting dev like any other change.
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "chore(docker)"
+
+  - package-ecosystem: docker-compose
+    directories: [/, /deploy]
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "chore(docker)"

@@ -1,0 +1,323 @@
+name: CI
+
+# Pull requests test the merge result, so pushes are only built on main,
+# where tags and releases are cut.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Third-party actions are pinned to commit SHAs; Dependabot keeps them updated.
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Check go.mod and go.sum are tidy
+        run: go mod tidy -diff
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: v2.13.2
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - run: go mod verify
+      - run: go test -race -covermode=atomic -coverprofile=coverage.out ./...
+      - name: Coverage summary
+        run: |
+          {
+            echo "### Coverage"
+            echo '```'
+            go tool cover -func=coverage.out | tail -1
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage
+          path: coverage.out
+          retention-days: 7
+
+  integration:
+    name: Integration (Vault)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      vault:
+        image: hashicorp/vault:2.1.1@sha256:47f14a6acb98f48d798a07df7c83f23a6e636e1cf724c5f8ff165cb32667a1e2
+        env:
+          VAULT_DEV_ROOT_TOKEN_ID: ci-root
+        ports:
+          - 8200:8200
+    env:
+      VAULT_ADDR: http://127.0.0.1:8200
+      VAULT_TOKEN: ci-root
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Wait for Vault
+        run: |
+          for _ in $(seq 30); do
+            curl -fsS "$VAULT_ADDR/v1/sys/health" > /dev/null && exit 0
+            sleep 1
+          done
+          echo "Vault did not become healthy" >&2
+          exit 1
+      # Store contract, conformance with the OpenAPI document served by Vault,
+      # and CLI -> API -> Vault end to end with the deploy/ policies.
+      - run: go test -race -tags integration -v ./internal/vaultstore/ ./internal/e2e/
+
+  vulncheck:
+    name: Vulnerabilities (govulncheck)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      # Blocking: govulncheck only reports vulnerabilities our code can reach.
+      - run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
+
+  secrets:
+    name: Secrets (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GITLEAKS_VERSION: 8.30.1
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # gitleaks-action needs a paid license for organisations; the CLI does not.
+      - name: Install gitleaks
+        run: |
+          archive="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSLo "$RUNNER_TEMP/$archive" "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${archive}"
+          echo "${GITLEAKS_SHA256}  $RUNNER_TEMP/$archive" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" gitleaks
+      - name: Scan the full git history
+        run: |
+          "$RUNNER_TEMP/gitleaks" git --config .gitleaks.toml --redact --no-banner --verbose .
+
+  release-snapshot:
+    name: Build binaries (all platforms)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: release --snapshot --clean
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: binaries
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/checksums.txt
+          retention-days: 7
+
+  docker:
+    name: Docker image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      IMAGE: secureenv-api:ci
+      TRIVY_IMAGE: aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build every published platform
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          build-args: VERSION=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Load the amd64 image for scanning
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: ${{ env.IMAGE }}
+          build-args: VERSION=${{ github.sha }}
+          cache-from: type=gha
+      - name: Scan image (fails on fixable HIGH or CRITICAL)
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock "$TRIVY_IMAGE" \
+            image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --no-progress "$IMAGE"
+
+  compose-dev:
+    name: Compose (dev stack)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SECURE_ENV_API_URL: http://127.0.0.1:8080
+      SECURE_ENV_TOKEN: dev-root
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Start Vault and the API
+        run: docker compose up -d --build --wait
+      - name: Use the CLI against the stack
+        run: |
+          go build -o secureenv ./cmd/secureenv
+          ./scripts/smoke.sh ./secureenv http://127.0.0.1:8080
+      - name: Logs
+        if: failure()
+        run: docker compose logs
+      - name: Stop
+        if: always()
+        run: docker compose down -v
+
+  compose-prod:
+    name: Compose (production stack)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: deploy
+    env:
+      COMPOSE_FILE: compose.prod.yaml
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Generate test certificates
+        run: ./vault/scripts/gen-certs.sh
+      - name: Start Vault
+        run: |
+          docker compose up -d vault
+          for _ in $(seq 60); do
+            # vault status exits 0 when unsealed and 2 when sealed.
+            status=0
+            docker compose exec -T vault vault status > /dev/null 2>&1 || status=$?
+            [ "$status" -eq 0 ] || [ "$status" -eq 2 ] && exit 0
+            sleep 1
+          done
+          echo "Vault did not start" >&2
+          exit 1
+      - name: Initialize, unseal and bootstrap Vault
+        run: |
+          set -euo pipefail
+          docker compose exec -T -e KEY_SHARES=1 -e KEY_THRESHOLD=1 vault /vault/scripts/init.sh > "$RUNNER_TEMP/init.txt"
+          key=$(awk -F': ' '/^Unseal Key 1:/ { print $2 }' "$RUNNER_TEMP/init.txt")
+          root=$(awk -F': ' '/^Initial Root Token:/ { print $2 }' "$RUNNER_TEMP/init.txt")
+          rm "$RUNNER_TEMP/init.txt"
+          echo "::add-mask::$key"
+          echo "::add-mask::$root"
+
+          # init.sh must be safe to run twice.
+          docker compose exec -T vault /vault/scripts/init.sh
+
+          docker compose exec -T vault vault operator unseal "$key" > /dev/null
+          for _ in $(seq 30); do
+            docker compose exec -T -e VAULT_TOKEN="$root" vault vault read -field=is_self sys/leader 2> /dev/null | grep -q true && break
+            sleep 1
+          done
+
+          docker compose exec -T -e VAULT_TOKEN="$root" vault /vault/scripts/bootstrap.sh
+          docker compose exec -T -e VAULT_TOKEN="$root" vault /vault/scripts/bootstrap.sh
+          writer=$(docker compose exec -T -e VAULT_TOKEN="$root" vault vault token create -policy=secureenv-writer -ttl=15m -field=token)
+          echo "::add-mask::$writer"
+          echo "SECURE_ENV_TOKEN=$writer" >> "$GITHUB_ENV"
+          echo "VAULT_ROOT_TOKEN=$root" >> "$GITHUB_ENV"
+      - name: Start the API over TLS
+        run: |
+          docker compose up -d --build api
+          for _ in $(seq 60); do
+            curl -fsS --cacert vault/certs/ca.pem https://localhost:8080/readyz && exit 0
+            sleep 1
+          done
+          echo "API not ready" >&2
+          exit 1
+      - name: Use the CLI against the stack
+        env:
+          SECURE_ENV_CA_CERT: ${{ github.workspace }}/deploy/vault/certs/ca.pem
+        run: |
+          go build -o "$RUNNER_TEMP/secureenv" ../cmd/secureenv
+          ../scripts/smoke.sh "$RUNNER_TEMP/secureenv" https://localhost:8080
+      - name: Check TLS and audit log
+        run: |
+          set -euo pipefail
+          if curl -fsS --tlsv1.2 --tls-max 1.2 --cacert vault/certs/ca.pem https://localhost:8200/v1/sys/health > /dev/null 2>&1; then
+            echo "Vault accepted TLS 1.2" >&2
+            exit 1
+          fi
+          docker compose exec -T vault sh -c 'test -s /vault/logs/audit.log'
+          if docker compose exec -T vault grep -q "$SECURE_ENV_TOKEN" /vault/logs/audit.log; then
+            echo "token stored in clear in the audit log" >&2
+            exit 1
+          fi
+          docker compose exec -T -e VAULT_TOKEN="$VAULT_ROOT_TOKEN" vault vault token revoke -self
+      - name: Logs
+        if: failure()
+        run: docker compose logs
+      - name: Stop
+        if: always()
+        run: docker compose down -v
+
+  # Single status to require in branch protection.
+  ci-result:
+    name: CI result
+    if: always()
+    needs: [lint, test, integration, vulncheck, secrets, release-snapshot, docker, compose-dev, compose-prod]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if a required job did not succeed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+        run: |
+          echo '${{ toJSON(needs) }}'
+          exit 1

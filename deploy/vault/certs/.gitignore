@@ -1,0 +1,3 @@
+# Certificates and keys are generated locally, never committed.
+*
+!.gitignore

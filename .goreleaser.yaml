@@ -1,0 +1,63 @@
+# GoReleaser builds the release archives when a v* tag is pushed.
+# Check locally with: make release-snapshot
+version: 2
+
+project_name: secureenv
+
+before:
+  hooks:
+    - go mod verify
+
+builds:
+  - id: secureenv
+    main: ./cmd/secureenv
+    binary: secureenv
+    env: [CGO_ENABLED=0]
+    flags: [-trimpath]
+    ldflags: ["-s -w -X main.version={{ .Version }}"]
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
+  - id: secureenv-api
+    main: ./cmd/secureenv-api
+    binary: secureenv-api
+    env: [CGO_ENABLED=0]
+    flags: [-trimpath]
+    ldflags: ["-s -w -X main.version={{ .Version }}"]
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+
+archives:
+  - id: secureenv
+    ids: [secureenv]
+    name_template: "secureenv_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files: [LICENSE, README.md]
+
+  - id: secureenv-api
+    ids: [secureenv-api]
+    name_template: "secureenv-api_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    formats: [tar.gz]
+    files: [LICENSE, README.md]
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+changelog:
+  # Release notes come from the release-drafter draft.
+  disable: true
+
+release:
+  github:
+    owner: PoCInnovation
+    name: SecureEnv
+  # Publishing the release-drafter draft creates the tag; keep its notes and
+  # attach the archives to it.
+  mode: keep-existing
+  prerelease: auto

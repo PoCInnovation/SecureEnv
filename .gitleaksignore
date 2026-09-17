@@ -1,0 +1,13 @@
+# Vault tokens committed in 2023, before the rewrite. They are still in the
+# public git history: they must be revoked on the Vault server (ignoring them
+# here does not make them safe). Listed so the CI secret scan only fails on new
+# leaks. Do not add entries without revoking the secret first.
+d363832002ee5a610399fc9fb1bb32325e125478:api/middlewares/corsMiddlewares.go:vault-token:50
+1fde24e0039f1a8f1610feb91a733b965987c967:api/middlewares/corsMiddlewares.go:vault-token:50
+4d5d0224ced2ca29df500ee6afe2bead04913e2c:api/.env:vault-token:1
+5bc0e23039db88a40d81d1a5ad6140a01eac4b81:CLI/secure-env.env:vault-token:4
+0343e2b66289770f16b8131271d8c87524b210ee:CLI/main.go:vault-token:27
+03505dac6f53793cff8b03d36aba745512aecebd:CLI/main.go:vault-token:27
+4c45536cbb19ca887a04d638bbc5d47f76698ffb:CLI/secure-env.env:vault-token:4
+2efca86607f50d77528ffb22c7debad66b9e4aa3:CLI/.secure-env:vault-token:6
+9e1afc088a2486b1b1c8a29d8825d9289c5f82a6:CLI/main.go:vault-token:26
